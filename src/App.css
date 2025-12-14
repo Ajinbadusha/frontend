@@ -204,6 +204,28 @@ body {
   color: #f9fafb;
 }
 
+/* Titles and text inside panels (white cards) */
+.panel h2,
+.panel h3,
+.panel label {
+  color: #111827;   /* near-black */
+}
+
+.panel p,
+.panel small {
+  color: #4b5563;   /* medium gray */
+}
+
+/* URL panel header specifically (inside the card) */
+.panel-header h2 {
+  color: #111827;
+}
+
+.panel-header p {
+  color: #4b5563;
+}
+
+
 /* mobile */
 @media (max-width: 900px) {
   .app-root {
