@@ -1,42 +1,112 @@
-#root {
-  max-width: 1280px;
+:root {
+  --bg-top: #7a4bff;
+  --bg-bottom: #050016;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(5, 0, 22, 0.9)) 0 0 / 100% 100% no-repeat,
+    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 8% 0 / 8% 100% no-repeat,
+    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 28% 0 / 8% 100% no-repeat,
+    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 48% 0 / 8% 100% no-repeat,
+    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 68% 0 / 8% 100% no-repeat,
+    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 88% 0 / 8% 100% no-repeat,
+    linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  color: #f9fafb;
+}
+
+/* Make main container transparent so background shows through */
+.container {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 32px 16px 40px;
+  background: transparent;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.panel {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px 24px 28px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  margin-bottom: 24px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.panel-header h2 {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+  font-weight: 600;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.panel-header p {
+  margin: 0 0 20px;
+  font-size: 0.95rem;
+  color: #6b7280;
 }
 
-.card {
-  padding: 2em;
+.form-group {
+  margin-bottom: 18px;
 }
 
-.read-the-docs {
-  color: #888;
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.95rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.toggles-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 8px 0 20px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.toggle input {
+  width: 16px;
+  height: 16px;
+}
+
+.btn.full-width {
+  width: 100%;
 }
