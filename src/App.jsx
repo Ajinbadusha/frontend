@@ -42,14 +42,11 @@ function App() {
 
   // Start crawl from URL panel
   const startCrawl = async (url, options) => {
-    setWsError(null)
-    setStatus({ status: 'queued', counters: {} })
-
-    const resp = await fetch(`${API_BASE_URL}/jobs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, options }),
-    })
+  const resp = await fetch(`${API_BASE_URL}/jobs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url, options }),
+  })
 
     if (!resp.ok) {
       const text = await resp.text()
