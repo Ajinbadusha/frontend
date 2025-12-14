@@ -60,11 +60,10 @@ function App() {
   }
 
   // Semantic search
-  const handleSearch = async (query) => {
-    if (!jobId) {
-      alert('Start a crawl first, then search.')
-      return
-    }
+const handleSearch = async (query) => {
+  const resp = await fetch(
+    `${API_BASE_URL}/search?job_id=${encodeURIComponent(jobId)}&q=${encodeURIComponent(query)}&limit=12`,
+  )
 
     const resp = await fetch(
       `${API_BASE_URL}/search?job_id=${encodeURIComponent(
