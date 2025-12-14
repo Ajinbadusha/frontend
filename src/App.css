@@ -1,112 +1,163 @@
-:root {
-  --bg-top: #7a4bff;
-  --bg-bottom: #050016;
-}
-
-body {
-  margin: 0;
+.app-root {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
   min-height: 100vh;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(5, 0, 22, 0.9)) 0 0 / 100% 100% no-repeat,
-    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 8% 0 / 8% 100% no-repeat,
-    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 28% 0 / 8% 100% no-repeat,
-    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 48% 0 / 8% 100% no-repeat,
-    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 68% 0 / 8% 100% no-repeat,
-    linear-gradient(to bottom, #8a5bff, rgba(20, 0, 60, 0.2)) 88% 0 / 8% 100% no-repeat,
-    linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
-  color: #f9fafb;
+  color: #0f172a;
 }
 
-/* Make main container transparent so background shows through */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 16px 40px;
-  background: transparent;
+/* Sidebar */
+
+.sidebar {
+  background: rgba(10, 16, 32, 0.98);
+  color: #e5e7eb;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.panel {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 24px 24px 28px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-  margin-bottom: 24px;
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.panel-header h2 {
-  margin: 0 0 4px;
-  font-size: 1.4rem;
+.logo-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #4ade80, #0ea5e9);
+}
+
+.logo-title {
   font-weight: 600;
+  font-size: 1.05rem;
 }
 
-.panel-header p {
-  margin: 0 0 20px;
-  font-size: 0.95rem;
-  color: #6b7280;
-}
-
-.form-group {
-  margin-bottom: 18px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.form-group small {
-  display: block;
-  margin-top: 4px;
+.logo-sub {
   font-size: 0.8rem;
   color: #9ca3af;
 }
 
-.input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  font-size: 0.95rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.input:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 1px #6366f1;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 8px;
-}
-
-.toggles-row {
+.sidebar-nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin: 8px 0 20px;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
 }
 
-.toggle {
-  display: inline-flex;
+.nav-item {
+  text-align: left;
+  border-radius: 999px;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: #d1d5db;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.nav-item-active {
+  background: #0ea5e9;
+  color: white;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  font-size: 0.8rem;
+  display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9rem;
-  color: #4b5563;
+  color: #9ca3af;
 }
 
-.toggle input {
-  width: 16px;
-  height: 16px;
+.footer-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
 }
 
-.btn.full-width {
-  width: 100%;
+/* Main area */
+
+.main-area {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.main-header h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+}
+
+.main-header p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #15803d;
+  font-size: 0.8rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+/* Cards */
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.primary-card {
+  max-width: 720px;
+}
+
+.primary-card .panel {
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.3);
+}
+
+.secondary-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.secondary-card .panel {
+  max-height: 420px;
+  overflow: hidden;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .app-root {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    display: none;
+  }
+  .main-area {
+    padding: 16px;
+  }
 }
