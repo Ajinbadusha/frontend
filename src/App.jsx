@@ -1,8 +1,8 @@
+import './App.css'
 import { useState, useEffect } from 'react'
 import URLPanel from './components/URLPanel'
 import StatusPanel from './components/StatusPanel'
 import SearchPanel from './components/SearchPanel'
-import './App.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
