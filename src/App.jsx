@@ -41,45 +41,49 @@ function App() {
   }, [jobId])
 
   // Start crawl from URL panel
-  const startCrawl = async (url, options) => {
+const startCrawl = async (url, options) => {
+  setWsError(null)
+  setStatus({ status: 'queued', counters: {} })
+
   const resp = await fetch(`${API_BASE_URL}/jobs`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url, options }),
   })
 
-    if (!resp.ok) {
-      const text = await resp.text()
-      alert(`Failed to start crawl: ${resp.status} ${text}`)
-      return
-    }
-
-    const data = await resp.json()
-    setJobId(data.job_id)
-    setResults([])
+  if (!resp.ok) {
+    const text = await resp.text()
+    alert(`Failed to start crawl: ${resp.status} ${text}`)
+    return
   }
+
+  const data = await resp.json()
+  setJobId(data.job_id)
+  setResults([])
+}
 
   // Semantic search
 const handleSearch = async (query) => {
-  const resp = await fetch(
-    `${API_BASE_URL}/search?job_id=${encodeURIComponent(jobId)}&q=${encodeURIComponent(query)}&limit=12`,
+  if (!jobId) {
+    alert('Start a crawl first, then search.')
+    return
+  }
+
+  const searchResp = await fetch(
+    `${API_BASE_URL}/search?job_id=${encodeURIComponent(
+      jobId,
+    )}&q=${encodeURIComponent(query)}&limit=12`,
   )
 
-    const resp = await fetch(
-      `${API_BASE_URL}/search?job_id=${encodeURIComponent(
-        jobId,
-      )}&q=${encodeURIComponent(query)}&limit=12`,
-    )
-
-    if (!resp.ok) {
-      const text = await resp.text()
-      alert(`Search failed: ${resp.status} ${text}`)
-      return
-    }
-
-    const data = await resp.json()
-    setResults(data)
+  if (!searchResp.ok) {
+    const text = await searchResp.text()
+    alert(`Search failed: ${searchResp.status} ${text}`)
+    return
   }
+
+  const data = await searchResp.json()
+  setResults(data)
+}
 
   return (
     <div className="app-root">
