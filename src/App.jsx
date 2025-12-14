@@ -1,83 +1,35 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
 import './App.css'
-import URLPanel from './components/URLPanel'
-import StatusPanel from './components/StatusPanel'
-import SearchPanel from './components/SearchPanel'
 
 function App() {
-  const [jobId, setJobId] = useState(null)
-  const [status, setStatus] = useState({ status: 'idle', counters: {} })
-  const [results, setResults] = useState([])
-  const [ws, setWs] = useState(null)
-
-  useEffect(() => {
-    if (jobId) {
-      const wsUrl = `ws://localhost:8000/ws/${jobId}`
-      const websocket = new WebSocket(wsUrl)
-      
-      websocket.onmessage = (event) => {
-        setStatus(JSON.parse(event.data))
-      }
-      
-      websocket.onerror = (error) => {
-        console.error('WebSocket error:', error)
-      }
-      
-      setWs(websocket)
-      
-      return () => {
-        websocket.close()
-      }
-    }
-  }, [jobId])
-
-  const handleStartCrawl = async (url, options) => {
-    try {
-      const response = await fetch('http://localhost:8000/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, options })
-      })
-      const data = await response.json()
-      setJobId(data.job_id)
-      setResults([])
-    } catch (error) {
-      console.error('Error starting crawl:', error)
-      alert('Failed to start crawl. Is the backend running?')
-    }
-  }
-
-  const handleSearch = async (query) => {
-    if (!jobId) return
-    try {
-      const response = await fetch(`http://localhost:8000/search?job_id=${jobId}&q=${query}&limit=10`)
-      const data = await response.json()
-      setResults(data)
-    } catch (error) {
-      console.error('Search error:', error)
-    }
-  }
+  const [count, setCount] = useState(0)
 
   return (
-    <div className="container">
-      <header className="header">
-        <h1>🛒 Universal Ecommerce Crawler</h1>
-        <p>AI-powered semantic search with real-time crawling</p>
-      </header>
-
-      <div className="panels">
-        {!jobId ? (
-          <URLPanel onStartCrawl={handleStartCrawl} />
-        ) : (
-          <>
-            <StatusPanel status={status} />
-            <SearchPanel onSearch={handleSearch} results={results} />
-          </>
-        )}
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
       </div>
-    </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.jsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
   )
 }
 
 export default App
-
