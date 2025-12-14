@@ -207,7 +207,7 @@ body {
 /* Text colors inside white panels */
 .panel,
 .panel * {
-  color: #111827;
+  color: white;
 }
 
 .panel small,
