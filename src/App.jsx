@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useState, useEffect } from 'react'
 import URLPanel from './components/URLPanel'
 import StatusPanel from './components/StatusPanel'
@@ -40,7 +39,7 @@ function App() {
 
   return (
     <div className="app-root">
-      {/* left sidebar */}
+      {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="logo-dot" />
@@ -62,7 +61,7 @@ function App() {
         </div>
       </aside>
 
-      {/* main area */}
+      {/* Main content */}
       <main className="main-area">
         <header className="main-header">
           <div>
@@ -77,7 +76,6 @@ function App() {
 
         <section className="main-content">
           <div className="primary-card">
-            {/* your URL panel goes inside the main card */}
             <URLPanel onStartCrawl={startCrawl} />
           </div>
 

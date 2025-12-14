@@ -5,8 +5,7 @@
   color: #0f172a;
 }
 
-/* Sidebar */
-
+/* left sidebar */
 .sidebar {
   background: rgba(10, 16, 32, 0.98);
   color: #e5e7eb;
@@ -77,8 +76,7 @@
   border: 1px solid #4b5563;
 }
 
-/* Main area */
-
+/* main column */
 .main-area {
   padding: 24px 32px;
   display: flex;
@@ -121,8 +119,6 @@
   background: #22c55e;
 }
 
-/* Cards */
-
 .main-content {
   display: flex;
   flex-direction: column;
@@ -148,8 +144,7 @@
   overflow: hidden;
 }
 
-/* Responsive */
-
+/* mobile */
 @media (max-width: 900px) {
   .app-root {
     grid-template-columns: 1fr;
