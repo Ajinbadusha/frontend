@@ -204,25 +204,23 @@ body {
   color: #f9fafb;
 }
 
-/* Titles and text inside panels (white cards) */
-.panel h2,
-.panel h3,
-.panel label {
-  color: #111827;   /* near-black */
-}
-
-.panel p,
-.panel small {
-  color: #4b5563;   /* medium gray */
-}
-
-/* URL panel header specifically (inside the card) */
-.panel-header h2 {
+/* Text colors inside white panels */
+.panel,
+.panel * {
   color: #111827;
 }
 
-.panel-header p {
-  color: #4b5563;
+.panel small,
+.panel .hint,
+.panel .help-text {
+  color: #6b7280;
+}
+
+/* Make inputs & selects dark text as well */
+.panel input,
+.panel select,
+.panel textarea {
+  color: #111827;
 }
 
 

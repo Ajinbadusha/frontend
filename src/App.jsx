@@ -1,8 +1,9 @@
-import './App.css'
-import { useState, useEffect } from 'react'
+// src/App.jsx
+import { useEffect, useState } from 'react'
 import URLPanel from './components/URLPanel'
 import StatusPanel from './components/StatusPanel'
 import SearchPanel from './components/SearchPanel'
+import './App.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -10,30 +11,77 @@ function App() {
   const [jobId, setJobId] = useState(null)
   const [status, setStatus] = useState({ status: 'idle', counters: {} })
   const [results, setResults] = useState([])
+  const [wsError, setWsError] = useState(null)
 
+  // WebSocket live status
   useEffect(() => {
     if (!jobId) return
-    const ws = new WebSocket(API_BASE_URL.replace('http', 'ws') + `/ws/${jobId}`)
-    ws.onmessage = (e) => setStatus(JSON.parse(e.data))
+
+    const wsUrl = API_BASE_URL.replace('http', 'ws') + `/ws/${jobId}`
+    const ws = new WebSocket(wsUrl)
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        setStatus(data)
+      } catch (e) {
+        console.error('WS message parse error', e)
+      }
+    }
+
+    ws.onerror = () => {
+      setWsError('Live status connection lost')
+    }
+
+    ws.onclose = () => {
+      // do nothing; crawl may already be finished
+    }
+
     return () => ws.close()
   }, [jobId])
 
+  // Start crawl from URL panel
   const startCrawl = async (url, options) => {
-    const res = await fetch(`${API_BASE_URL}/jobs`, {
+    setWsError(null)
+    setStatus({ status: 'queued', counters: {} })
+
+    const resp = await fetch(`${API_BASE_URL}/jobs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url, options }),
     })
-    const data = await res.json()
+
+    if (!resp.ok) {
+      const text = await resp.text()
+      alert(`Failed to start crawl: ${resp.status} ${text}`)
+      return
+    }
+
+    const data = await resp.json()
     setJobId(data.job_id)
     setResults([])
   }
 
-  const search = async (query) => {
-    const res = await fetch(
-      `${API_BASE_URL}/search?job_id=${jobId}&q=${encodeURIComponent(query)}&limit=10`,
+  // Semantic search
+  const handleSearch = async (query) => {
+    if (!jobId) {
+      alert('Start a crawl first, then search.')
+      return
+    }
+
+    const resp = await fetch(
+      `${API_BASE_URL}/search?job_id=${encodeURIComponent(
+        jobId,
+      )}&q=${encodeURIComponent(query)}&limit=12`,
     )
-    const data = await res.json()
+
+    if (!resp.ok) {
+      const text = await resp.text()
+      alert(`Search failed: ${resp.status} ${text}`)
+      return
+    }
+
+    const data = await resp.json()
     setResults(data)
   }
 
@@ -66,7 +114,10 @@ function App() {
         <header className="main-header">
           <div>
             <h1>Start Your Extraction Engine</h1>
-            <p>Enter an ecommerce URL. The system will crawl, enrich with AI, and index for search.</p>
+            <p>
+              Enter an ecommerce URL. The system will crawl, enrich with AI, and index for
+              semantic search.
+            </p>
           </div>
           <div className="status-chip">
             <span className="status-dot" />
@@ -75,20 +126,20 @@ function App() {
         </header>
 
         <section className="main-content">
+          {/* URL ingestion card */}
           <div className="primary-card">
             <URLPanel onStartCrawl={startCrawl} />
           </div>
 
-          {jobId && (
-            <div className="secondary-row">
-              <div className="secondary-card">
-                <StatusPanel status={status} />
-              </div>
-              <div className="secondary-card">
-                <SearchPanel onSearch={search} results={results} />
-              </div>
+          {/* Status + Search row */}
+          <div className="secondary-row">
+            <div className="secondary-card">
+              <StatusPanel status={status} wsError={wsError} />
             </div>
-          )}
+            <div className="secondary-card">
+              <SearchPanel onSearch={handleSearch} results={results} />
+            </div>
+          </div>
         </section>
       </main>
     </div>
