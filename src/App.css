@@ -111,13 +111,13 @@ body {
 .main-header h1 {
   margin: 0 0 4px;
   font-size: 1.6rem;
-  color: #f9fafb;
+  color: #f9fafb;   /* white on purple */
 }
 
 .main-header p {
   margin: 0;
   font-size: 0.95rem;
-  color: #d1d5db;
+  color: #d1d5db;   /* light gray on purple */
 }
 
 .status-chip {
@@ -154,6 +154,7 @@ body {
   border-radius: 16px;
   padding: 24px 24px 28px;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.4);
+  color: #111827; /* default text color inside cards */
 }
 
 .primary-card {
@@ -176,7 +177,7 @@ body {
   overflow: hidden;
 }
 
-/* inputs & buttons (optional, but keeps them clean) */
+/* inputs & buttons */
 .input {
   width: 100%;
   padding: 10px 12px;
@@ -205,9 +206,17 @@ body {
 }
 
 /* Text colors inside white panels */
-.panel,
-.panel * {
-  color: white;
+.panel h2,
+.panel h3,
+.panel h4,
+.panel label {
+  color: #111827;
+}
+
+.panel p,
+.panel li,
+.panel span {
+  color: #4b5563;
 }
 
 .panel small,
@@ -221,8 +230,8 @@ body {
 .panel select,
 .panel textarea {
   color: #111827;
+  background-color: #f9fafb;
 }
-
 
 /* mobile */
 @media (max-width: 900px) {
