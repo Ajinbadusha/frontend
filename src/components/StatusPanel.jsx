@@ -1,58 +1,67 @@
-export default function StatusPanel({ status }) {
+import React from 'react'
+
+const STATUS_LABELS = {
+  idle: 'Idle',
+  queued: 'Queued',
+  crawling: 'Crawling – visiting pages',
+  parsing: 'Parsing – extracting products',
+  downloading: 'Downloading images',
+  enriching: 'Enriching – AI analysis',
+  indexing: 'Indexing – preparing for search',
+  completed: 'Completed',
+  failed: 'Failed',
+  cancelled: 'Cancelled',
+}
+
+function StatusPanel({ jobId, status, wsError, onCancelJob }) {
   const counters = status.counters || {}
-  
-  const statusColors = {
-    'queued': '#808080',
-    'crawling': '#FFA500',
-    'parsing': '#FF6347',
-    'downloading': '#4169E1',
-    'enriching': '#9370DB',
-    'indexing': '#20B2AA',
-    'completed': '#32CD32',
-    'failed': '#DC143C'
-  }
+
+  const canCancel =
+    jobId &&
+    ['queued', 'crawling', 'parsing', 'downloading', 'enriching', 'indexing'].includes(
+      status.status,
+    )
 
   return (
-    <div className="panel status-panel">
-      <h2>📊 Job Status & Progress</h2>
-      
-      <div className="status-badge" style={{ backgroundColor: statusColors[status.status] }}>
-        {status.status?.toUpperCase() || 'IDLE'}
+    <div className="status-panel">
+      <div className="status-header">
+        <h3>📊 Job Status &amp; Progress</h3>
+        <span className={`status-pill status-${status.status || 'idle'}`}>
+          {STATUS_LABELS[status.status] || 'Idle'}
+        </span>
       </div>
 
-      <div className="counters-grid">
-        <div className="counter">
-          <span className="counter-value">{counters.pages_visited || 0}</span>
-          <span className="counter-label">Pages Visited</span>
-        </div>
-        <div className="counter">
-          <span className="counter-value">{counters.products_discovered || 0}</span>
-          <span className="counter-label">Products Discovered</span>
-        </div>
-        <div className="counter">
-          <span className="counter-value">{counters.products_extracted || 0}</span>
-          <span className="counter-label">Products Extracted</span>
-        </div>
-        <div className="counter">
-          <span className="counter-value">{counters.images_downloaded || 0}</span>
-          <span className="counter-label">Images Downloaded</span>
-        </div>
-        <div className="counter">
-          <span className="counter-value">{counters.products_enriched || 0}</span>
-          <span className="counter-label">Products Enriched</span>
-        </div>
-        <div className="counter">
-          <span className="counter-value">{counters.products_indexed || 0}</span>
-          <span className="counter-label">Products Indexed</span>
-        </div>
+      {wsError && <div className="status-error">{wsError}</div>}
+
+      <div className="status-counters">
+        <div>Pages Visited: {counters.pages_visited ?? 0}</div>
+        <div>Products Discovered: {counters.products_discovered ?? 0}</div>
+        <div>Products Extracted: {counters.products_extracted ?? 0}</div>
+        <div>Images Downloaded: {counters.images_downloaded ?? 0}</div>
+        <div>Products Enriched: {counters.products_enriched ?? 0}</div>
+        <div>Products Indexed: {counters.products_indexed ?? 0}</div>
       </div>
 
-      {status.error && (
-        <div className="error-box">
-          <strong>Error:</strong> {status.error}
+      <div className="status-actions">
+        {canCancel && (
+          <button className="btn-secondary" onClick={onCancelJob}>
+            Pause / Cancel Job
+          </button>
+        )}
+        {!canCancel && <small>No active job to cancel.</small>}
+      </div>
+
+      <div className="status-logs">
+        <div className="status-logs-header">
+          <span>Live Log Stream</span>
+          <small>(tail view placeholder)</small>
         </div>
-      )}
+        <div className="status-logs-body">
+          <p>Real-time logs will appear here in a future iteration.</p>
+        </div>
+      </div>
     </div>
   )
 }
 
+export default StatusPanel

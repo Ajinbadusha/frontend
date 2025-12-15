@@ -33,9 +33,7 @@ function App() {
       setWsError('Live status connection lost')
     }
 
-    ws.onclose = () => {
-      // crawl may already be finished
-    }
+    ws.onclose = () => {}
 
     return () => ws.close()
   }, [jobId])
@@ -62,18 +60,34 @@ function App() {
     setResults([])
   }
 
+  // Cancel job (best-effort)
+  const cancelJob = async () => {
+    if (!jobId) return
+    try {
+      await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}/cancel`, {
+        method: 'POST',
+      })
+    } catch (e) {
+      console.error('Cancel failed', e)
+    }
+  }
+
   // Semantic search
-  const handleSearch = async (query) => {
+  const handleSearch = async (query, filters) => {
     if (!jobId) {
       alert('Start a crawl first, then search.')
       return
     }
 
-    const searchResp = await fetch(
-      `${API_BASE_URL}/search?job_id=${encodeURIComponent(
-        jobId,
-      )}&q=${encodeURIComponent(query)}&limit=12`,
-    )
+    const params = new URLSearchParams({
+      job_id: jobId,
+      q: query,
+      limit: '12',
+    })
+
+    // optional future: attach filters to query params
+
+    const searchResp = await fetch(`${API_BASE_URL}/search?${params.toString()}`)
 
     if (!searchResp.ok) {
       const text = await searchResp.text()
@@ -84,6 +98,11 @@ function App() {
     const data = await searchResp.json()
     setResults(data)
   }
+
+  const searchEnabled =
+    status.status === 'indexing' ||
+    status.status === 'completed' ||
+    status.status === 'failed'
 
   return (
     <div className="app-root">
@@ -134,10 +153,21 @@ function App() {
           {/* Status + Search row */}
           <div className="secondary-row">
             <div className="secondary-card">
-              <StatusPanel status={status} wsError={wsError} />
+              <StatusPanel
+                jobId={jobId}
+                status={status}
+                wsError={wsError}
+                onCancelJob={cancelJob}
+              />
             </div>
             <div className="secondary-card">
-              <SearchPanel onSearch={handleSearch} results={results} />
+              <SearchPanel
+                jobId={jobId}
+                status={status}
+                enabled={searchEnabled}
+                onSearch={handleSearch}
+                results={results}
+              />
             </div>
           </div>
         </section>

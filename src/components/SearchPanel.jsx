@@ -1,65 +1,153 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 
-export default function SearchPanel({ onSearch, results }) {
+function SearchPanel({ jobId, status, enabled, onSearch, results }) {
   const [query, setQuery] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [selected, setSelected] = useState(null)
+  const [detail, setDetail] = useState(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
 
-  const handleSearch = async () => {
-    if (!query.trim()) return
-    
-    setLoading(true)
-    await onSearch(query)
-    setLoading(false)
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!enabled) return
+    onSearch(query, {})
   }
 
-  return (
-    <div className="panel search-panel">
-      <h2>🔍 Semantic Search</h2>
+  const handleOpenDetail = async (product) => {
+    setSelected(product)
+    setLoadingDetail(true)
+    try {
+      const resp = await fetch(
+        `${import.meta.env.VITE_API_URL}/products/${encodeURIComponent(product.id)}`,
+      )
+      if (resp.ok) {
+        const data = await resp.json()
+        setDetail(data)
+      } else {
+        setDetail(null)
+      }
+    } catch {
+      setDetail(null)
+    } finally {
+      setLoadingDetail(false)
+    }
+  }
 
-      <div className="search-bar">
+  const closeDetail = () => {
+    setSelected(null)
+    setDetail(null)
+  }
+
+  const statusText = enabled
+    ? 'Search is ready'
+    : 'Search will be enabled after indexing is available.'
+
+  return (
+    <div className="search-panel">
+      <h3>🔍 Semantic Search</h3>
+
+      <form className="search-form" onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder='Search: "red winter dress", "leather shoes", "wireless headphones"'
+          placeholder="Search: “red winter dress”, “leather shoes”, “vitamin c serum”"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          className="input"
-          disabled={loading}
+          disabled={!enabled}
         />
-        <button
-          onClick={handleSearch}
-          className="btn btn-primary"
-          disabled={loading}
-        >
-          {loading ? 'Searching...' : 'Search'}
+        <button type="submit" className="btn-primary" disabled={!enabled || !query.trim()}>
+          Search
         </button>
-      </div>
+      </form>
 
-      <div className="results-grid">
-        {results.length === 0 ? (
-          <p className="no-results">No results yet. Enter your search query above.</p>
-        ) : (
-          results.map((product) => (
-            <div key={product.id} className="product-card">
-              <div className="product-image">
-                {product.images && product.images[0] ? (
-                  <img src={product.images[0]} alt={product.title} />
+      <small className="search-status-hint">{statusText}</small>
+
+      {/* Results list */}
+      <div className="search-results">
+        {results.length === 0 && <div>No results yet. Enter your search query above.</div>}
+        {results.map((prod) => (
+          <div
+            key={prod.id}
+            className="search-result-card"
+            onClick={() => handleOpenDetail(prod)}
+          >
+            <div className="result-main">
+              <div className="result-thumb">
+                {prod.images && prod.images.length > 0 ? (
+                  <img src={prod.images[0]} alt={prod.title} />
                 ) : (
-                  <div className="image-placeholder">No Image</div>
+                  <span className="no-image">No Image</span>
                 )}
               </div>
-              <div className="product-info">
-                <h3>{product.title}</h3>
-                <p className="price">${product.price?.toFixed(2) || 'N/A'}</p>
-                <a href={product.source_url} target="_blank" rel="noreferrer" className="source-link">
+              <div className="result-text">
+                <div className="result-title">{prod.title}</div>
+                {prod.price != null && <div className="result-price">${prod.price}</div>}
+                <a
+                  href={prod.source_url}
+                  className="result-link"
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   View Original →
                 </a>
               </div>
             </div>
-          ))
-        )}
+          </div>
+        ))}
       </div>
+
+      {/* Detail drawer / modal */}
+      {selected && (
+        <div className="product-detail-backdrop" onClick={closeDetail}>
+          <div className="product-detail-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="detail-close" onClick={closeDetail}>
+              ✕
+            </button>
+            {loadingDetail && <div>Loading...</div>}
+            {!loadingDetail && detail && (
+              <>
+                <h4>{detail.title}</h4>
+                {detail.price != null && <p className="detail-price">${detail.price}</p>}
+
+                <div className="detail-images">
+                  {detail.images?.map((img) => (
+                    <div key={img.url} className="detail-image-item">
+                      <img src={img.url} alt={detail.title} />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="detail-section">
+                  <h5>Enriched Description</h5>
+                  <p>{detail.enrichment?.visual_summary || detail.description}</p>
+                </div>
+
+                <div className="detail-section">
+                  <h5>Attributes</h5>
+                  {detail.enrichment?.attributes ? (
+                    <ul className="detail-attributes">
+                      {Object.entries(detail.enrichment.attributes).map(([k, v]) => (
+                        <li key={k}>
+                          <strong>{k}:</strong> {String(v)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No structured attributes available.</p>
+                  )}
+                </div>
+
+                <div className="detail-section">
+                  <a href={detail.source_url} target="_blank" rel="noreferrer">
+                    Open original product page →
+                  </a>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
+export default SearchPanel
