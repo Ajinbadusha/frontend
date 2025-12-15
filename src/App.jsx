@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useEffect, useState } from 'react'
 import URLPanel from './components/URLPanel'
 import StatusPanel from './components/StatusPanel'
