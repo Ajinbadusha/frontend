@@ -12,33 +12,27 @@ function App() {
   const [results, setResults] = useState([])
   const [wsError, setWsError] = useState(null)
 
-  // WebSocket live status
+  /* ---------------- WebSocket live updates ---------------- */
   useEffect(() => {
     if (!jobId) return
 
-    const wsBase = API_BASE_URL.replace('http', 'ws')
-    const wsUrl = `${wsBase}/ws?job_id=${encodeURIComponent(jobId)}`
-    const ws = new WebSocket(wsUrl)
+    const wsBase = API_BASE_URL.replace(/^http/, 'ws')
+    const ws = new WebSocket(`${wsBase}/ws?job_id=${encodeURIComponent(jobId)}`)
 
     ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data)
-        setStatus(data)
-      } catch (e) {
-        console.error('WS message parse error', e)
+        setStatus(JSON.parse(event.data))
+      } catch (err) {
+        console.error('WS parse error', err)
       }
     }
 
-    ws.onerror = () => {
-      setWsError('Live status connection lost')
-    }
-
-    ws.onclose = () => {}
+    ws.onerror = () => setWsError('Live connection lost')
 
     return () => ws.close()
   }, [jobId])
 
-  // Start crawl from URL panel
+  /* ---------------- Start crawl ---------------- */
   const startCrawl = async (url, options) => {
     setWsError(null)
     setStatus({ status: 'queued', counters: {} })
@@ -50,8 +44,7 @@ function App() {
     })
 
     if (!resp.ok) {
-      const text = await resp.text()
-      alert(`Failed to start crawl: ${resp.status} ${text}`)
+      alert('Failed to start crawl')
       return
     }
 
@@ -60,24 +53,19 @@ function App() {
     setResults([])
   }
 
-  // Cancel job (best-effort)
+  /* ---------------- Cancel crawl ---------------- */
   const cancelJob = async () => {
     if (!jobId) return
     try {
-      await fetch(`${API_BASE_URL}/jobs/${encodeURIComponent(jobId)}/cancel`, {
-        method: 'POST',
-      })
-    } catch (e) {
-      console.error('Cancel failed', e)
+      await fetch(`${API_BASE_URL}/jobs/${jobId}/cancel`, { method: 'POST' })
+    } catch (err) {
+      console.error(err)
     }
   }
 
-  // Semantic search
-  const handleSearch = async (query, filters) => {
-    if (!jobId) {
-      alert('Start a crawl first, then search.')
-      return
-    }
+  /* ---------------- Semantic search ---------------- */
+  const handleSearch = async (query) => {
+    if (!jobId) return alert('Start a crawl first')
 
     const params = new URLSearchParams({
       job_id: jobId,
@@ -85,18 +73,10 @@ function App() {
       limit: '12',
     })
 
-    // optional future: attach filters to query params
+    const resp = await fetch(`${API_BASE_URL}/search?${params}`)
+    if (!resp.ok) return alert('Search failed')
 
-    const searchResp = await fetch(`${API_BASE_URL}/search?${params.toString()}`)
-
-    if (!searchResp.ok) {
-      const text = await searchResp.text()
-      alert(`Search failed: ${searchResp.status} ${text}`)
-      return
-    }
-
-    const data = await searchResp.json()
-    setResults(data)
+    setResults(await resp.json())
   }
 
   const searchEnabled =
@@ -106,38 +86,39 @@ function App() {
 
   return (
     <div className="app-root">
-      {/* Sidebar */}
+      {/* ================= Sidebar ================= */}
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="logo-dot" />
           <div>
             <div className="logo-title">SemanticCrawler</div>
-            <div className="logo-sub">Universal Extract &amp; Search</div>
+            <div className="logo-sub">Universal Extract & Search</div>
           </div>
         </div>
 
         <nav className="sidebar-nav">
-          <button className="nav-item nav-item-active">＋ New Crawl Job</button>
+          <button className="nav-item nav-item-active">＋ New Crawl</button>
           <button className="nav-item">▤ Live Monitor</button>
           <button className="nav-item">🔍 Semantic Search</button>
         </nav>
 
         <div className="sidebar-footer">
-          <span className="footer-label">Architecture Guide</span>
+          <span>Architecture Guide</span>
           <span className="footer-tag">Student Mode</span>
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* ================= Main ================= */}
       <main className="main-area">
         <header className="main-header">
           <div>
             <h1>Start Your Extraction Engine</h1>
             <p>
-              Enter an ecommerce URL. The system will crawl, enrich with AI, and index for
-              semantic search.
+              Enter an ecommerce URL. The system will crawl, enrich with AI,
+              and index for semantic search.
             </p>
           </div>
+
           <div className="status-chip">
             <span className="status-dot" />
             System operational
@@ -145,14 +126,12 @@ function App() {
         </header>
 
         <section className="main-content">
-          {/* URL ingestion card */}
-          <div className="primary-card">
+          <div className="primary-card panel">
             <URLPanel onStartCrawl={startCrawl} />
           </div>
 
-          {/* Status + Search row */}
           <div className="secondary-row">
-            <div className="secondary-card">
+            <div className="panel">
               <StatusPanel
                 jobId={jobId}
                 status={status}
@@ -160,13 +139,13 @@ function App() {
                 onCancelJob={cancelJob}
               />
             </div>
-            <div className="secondary-card">
+
+            <div className="panel">
               <SearchPanel
-                jobId={jobId}
-                status={status}
                 enabled={searchEnabled}
-                onSearch={handleSearch}
+                status={status}
                 results={results}
+                onSearch={handleSearch}
               />
             </div>
           </div>
