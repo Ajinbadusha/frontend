@@ -30,8 +30,8 @@ export default function CrawlingProgress() {
       return
     }
 
-    const wsBase = API_BASE_URL.replace(/^http/, 'ws')
-    const ws = new WebSocket(`${wsBase}/ws?job_id=${encodeURIComponent(jobId)}`)
+        const wsBase = API_BASE_URL.replace(/^http/, 'ws')
+        const ws = new WebSocket(`${wsBase}/ws?job_id=${encodeURIComponent(jobId)}`)
 
     ws.onmessage = (event) => {
       try {
@@ -42,13 +42,6 @@ export default function CrawlingProgress() {
         if (stepIndex >= 0) {
           setCurrentStep(steps[stepIndex].description)
           setProgress(((stepIndex + 1) / steps.length) * 100)
-        }
-
-        // Redirect to results page when completed
-        if (data.status === 'completed' || data.status === 'failed') {
-          setTimeout(() => {
-            navigate('/results', { state: { jobId, url, status: data } })
-          }, 2000)
         }
       } catch (err) {
         console.error('WS parse error', err)

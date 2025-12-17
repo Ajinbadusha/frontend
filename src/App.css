@@ -355,6 +355,21 @@ body {
   line-height: 1.5;
 }
 
+/* URL Ingestion special styling */
+.url-panel {
+  background: radial-gradient(circle at top left, #4f46e5, #020617 55%);
+  color: #f9fafb;
+}
+
+.url-panel .panel-header h2 {
+  color: #f9fafb;
+  text-shadow: 0 0 10px rgba(129, 140, 248, 0.9), 0 0 20px rgba(147, 51, 234, 0.9);
+}
+
+.url-panel .panel-header p {
+  color: #e5e7eb;
+}
+
 /* ================= Status Panel ================= */
 .status-panel {
   display: flex;
