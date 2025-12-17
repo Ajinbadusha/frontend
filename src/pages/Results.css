@@ -32,6 +32,12 @@
   letter-spacing: 1px;
 }
 
+.results-logo .logo-text {
+  background: none;
+  -webkit-text-fill-color: #ffffff;
+  color: #ffffff;
+}
+
 .back-button {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
