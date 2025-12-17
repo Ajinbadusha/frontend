@@ -2,10 +2,10 @@ import React from 'react'
 
 export default function Logo({ variant = 'default', size = 'medium' }) {
   const sizeMap = {
-    small: { width: 32, height: 32, fontSize: '0.75rem' },
-    medium: { width: 40, height: 40, fontSize: '0.9rem' },
-    large: { width: 64, height: 64, fontSize: '1.2rem' },
-    xl: { width: 96, height: 96, fontSize: '1.8rem' },
+    small: { width: 40, height: 40, fontSize: '0.85rem' },
+    medium: { width: 52, height: 52, fontSize: '1rem' },
+    large: { width: 72, height: 72, fontSize: '1.3rem' },
+    xl: { width: 120, height: 120, fontSize: '2rem' },
   }
 
   const dimensions = sizeMap[size] || sizeMap.medium

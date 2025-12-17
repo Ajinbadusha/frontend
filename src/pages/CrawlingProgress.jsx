@@ -130,6 +130,18 @@ export default function CrawlingProgress() {
               <small>Crawling: {url}</small>
             </div>
           )}
+
+          {(status.status === 'completed' || status.status === 'failed') && (
+            <div className="crawling-actions">
+              <button
+                type="button"
+                className="crawling-next-button"
+                onClick={() => navigate('/results', { state: { jobId, url, status } })}
+              >
+                View search results →
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -54,8 +54,6 @@ export default function Home() {
 
         <nav className="sidebar-nav">
           <button className="nav-item nav-item-active">＋ New Crawl</button>
-          <button className="nav-item">▤ Live Monitor</button>
-          <button className="nav-item">🔍 Semantic Search</button>
         </nav>
 
         <div className="sidebar-footer">

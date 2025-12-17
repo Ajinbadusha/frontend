@@ -32,12 +32,6 @@
   letter-spacing: 1px;
 }
 
-.jobs-logo .logo-text {
-  background: none;
-  -webkit-text-fill-color: #ffffff;
-  color: #ffffff;
-}
-
 .jobs-main {
   max-width: 1200px;
   margin: 0 auto;

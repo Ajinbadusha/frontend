@@ -118,6 +118,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  color: #f9fafb;
 }
 
 .main-header {
@@ -151,7 +152,7 @@ body {
 .main-header p {
   margin: 0;
   font-size: 0.95rem;
-  color: #d1d5db;
+  color: #e5e7eb;
   line-height: 1.5;
 }
 
