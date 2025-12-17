@@ -56,8 +56,7 @@ export default function Jobs() {
       <header className="jobs-header">
         <div className="jobs-header-content">
           <div className="jobs-logo">
-            <Logo variant="icon-only" size="medium" />
-            <h1>INNOCRAWL Jobs</h1>
+            <Logo variant="default" size="medium" />
           </div>
           <button className="back-button" onClick={() => navigate('/')}>
             ← Back to Home

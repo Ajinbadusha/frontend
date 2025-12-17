@@ -215,6 +215,12 @@
   word-break: break-all;
 }
 
+.crawling-next-row {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 @media (max-width: 768px) {
   .crawling-container {
     padding: 32px 24px;
