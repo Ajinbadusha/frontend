@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import URLPanel from './components/URLPanel'
 import StatusPanel from './components/StatusPanel'
 import SearchPanel from './components/SearchPanel'
+import Logo from './components/Logo'
+import LoadingScreen from './components/LoadingScreen'
 import './App.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
@@ -11,6 +13,7 @@ function App() {
   const [status, setStatus] = useState({ status: 'idle', counters: {} })
   const [results, setResults] = useState([])
   const [wsError, setWsError] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   /* ---------------- WebSocket live updates ---------------- */
   useEffect(() => {
@@ -84,15 +87,25 @@ function App() {
     status.status === 'completed' ||
     status.status === 'failed'
 
+  // Simulate initial loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isLoading) {
+    return <LoadingScreen />
+  }
+
   return (
     <div className="app-root">
       {/* ================= Sidebar ================= */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo-dot" />
+          <Logo variant="icon-only" size="medium" />
           <div>
-            <div className="logo-title">SemanticCrawler</div>
-            <div className="logo-sub">Universal Extract & Search</div>
+            <div className="logo-title">INNOCRAWL</div>
+            <div className="logo-sub">Ecommerce Crawler</div>
           </div>
         </div>
 
@@ -111,12 +124,15 @@ function App() {
       {/* ================= Main ================= */}
       <main className="main-area">
         <header className="main-header">
-          <div>
-            <h1>Start Your Extraction Engine</h1>
-            <p>
-              Enter an ecommerce URL. The system will crawl, enrich with AI,
-              and index for semantic search.
-            </p>
+          <div className="header-left">
+            <Logo variant="icon-only" size="small" />
+            <div>
+              <h1>Ecommerce Crawler</h1>
+              <p>
+                Extract products from any ecommerce site. AI-powered crawling, enrichment,
+                and semantic search.
+              </p>
+            </div>
           </div>
 
           <div className="status-chip">
