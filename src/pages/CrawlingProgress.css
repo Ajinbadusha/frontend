@@ -25,7 +25,19 @@
 }
 
 .crawling-content {
-  text-align: center;
+  text-align: left;
+}
+
+.crawling-header-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.crawling-header-text {
+  flex: 1;
 }
 
 .crawling-title {
@@ -40,6 +52,40 @@
   font-size: 1.1rem;
   color: #d1d5db;
   margin: 0 0 32px;
+}
+
+.crawling-status-box {
+  min-width: 160px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.6);
+  text-align: right;
+}
+
+.status-box-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.status-box-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 2px;
+}
+
+.status-box-progress {
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .progress-bar-container {
@@ -172,6 +218,11 @@
 @media (max-width: 768px) {
   .crawling-container {
     padding: 32px 24px;
+  }
+
+  .crawling-header-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .crawling-title {

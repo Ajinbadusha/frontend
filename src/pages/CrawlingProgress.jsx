@@ -72,8 +72,17 @@ export default function CrawlingProgress() {
         </div>
 
         <div className="crawling-content">
-          <h1 className="crawling-title">Crawling in Progress</h1>
-          <p className="crawling-subtitle">{currentStep}</p>
+          <div className="crawling-header-row">
+            <div className="crawling-header-text">
+              <h1 className="crawling-title">Crawling in Progress</h1>
+              <p className="crawling-subtitle">{currentStep}</p>
+            </div>
+            <div className="crawling-status-box">
+              <div className="status-box-label">Job status</div>
+              <div className="status-box-value">{status.status || 'idle'}</div>
+              <div className="status-box-progress">{Math.round(progress)}%</div>
+            </div>
+          </div>
 
           <div className="progress-bar-container">
             <div className="progress-bar" style={{ width: `${progress}%` }}></div>

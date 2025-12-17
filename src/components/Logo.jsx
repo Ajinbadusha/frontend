@@ -48,20 +48,20 @@ export default function Logo({ variant = 'default', size = 'medium' }) {
       {/* Gradients */}
       <defs>
         <linearGradient id={`eagleGradient-${gradientId}`} x1="8" y1="8" x2="16" y2="16">
-          <stop offset="0%" stopColor="#E5E7EB" />
-          <stop offset="100%" stopColor="#D1D5DB" />
+          <stop offset="0%" stopColor="#f9fafb" />
+          <stop offset="100%" stopColor="#e5e7eb" />
         </linearGradient>
-        <linearGradient id={`wingGradient1-${gradientId}`} x1="18" y1="10" x2="26" y2="14">
-          <stop offset="0%" stopColor="#9333EA" />
-          <stop offset="100%" stopColor="#A855F7" />
+        <linearGradient id={`wingGradient1-${gradientId}`} x1="18" y1="10" x2="30" y2="14">
+          <stop offset="0%" stopColor="#7c3aed" />
+          <stop offset="100%" stopColor="#a855f7" />
         </linearGradient>
-        <linearGradient id={`wingGradient2-${gradientId}`} x1="20" y1="12" x2="28" y2="16">
-          <stop offset="0%" stopColor="#A855F7" />
-          <stop offset="100%" stopColor="#C084FC" />
+        <linearGradient id={`wingGradient2-${gradientId}`} x1="20" y1="12" x2="32" y2="18">
+          <stop offset="0%" stopColor="#a855f7" />
+          <stop offset="100%" stopColor="#ec4899" />
         </linearGradient>
-        <linearGradient id={`wingGradient3-${gradientId}`} x1="22" y1="14" x2="30" y2="18">
-          <stop offset="0%" stopColor="#C084FC" />
-          <stop offset="100%" stopColor="#E9D5FF" />
+        <linearGradient id={`wingGradient3-${gradientId}`} x1="22" y1="14" x2="34" y2="20">
+          <stop offset="0%" stopColor="#ec4899" />
+          <stop offset="100%" stopColor="#22d3ee" />
         </linearGradient>
       </defs>
     </svg>

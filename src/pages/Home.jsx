@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import URLPanel from '../components/URLPanel'
-import StatusPanel from '../components/StatusPanel'
-import SearchPanel from '../components/SearchPanel'
 import Logo from '../components/Logo'
 import LoadingScreen from '../components/LoadingScreen'
 import '../App.css'
@@ -11,37 +9,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL
 
 export default function Home() {
   const navigate = useNavigate()
-  const [jobId, setJobId] = useState(null)
-  const [status, setStatus] = useState({ status: 'idle', counters: {} })
-  const [results, setResults] = useState([])
-  const [wsError, setWsError] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
-
-  /* ---------------- WebSocket live updates ---------------- */
-  useEffect(() => {
-    if (!jobId) return
-
-    const wsBase = API_BASE_URL.replace(/^http/, 'ws')
-    const ws = new WebSocket(`${wsBase}/ws?job_id=${encodeURIComponent(jobId)}`)
-
-    ws.onmessage = (event) => {
-      try {
-        setStatus(JSON.parse(event.data))
-      } catch (err) {
-        console.error('WS parse error', err)
-      }
-    }
-
-    ws.onerror = () => setWsError('Live connection lost')
-
-    return () => ws.close()
-  }, [jobId])
 
   /* ---------------- Start crawl ---------------- */
   const startCrawl = async (url, options) => {
-    setWsError(null)
-    setStatus({ status: 'queued', counters: {} })
-
     const resp = await fetch(`${API_BASE_URL}/jobs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -54,43 +25,10 @@ export default function Home() {
     }
 
     const data = await resp.json()
-    setJobId(data.job_id)
-    setResults([])
-    
+
     // Navigate to crawling progress page
     navigate('/crawling', { state: { jobId: data.job_id, url } })
   }
-
-  /* ---------------- Cancel crawl ---------------- */
-  const cancelJob = async () => {
-    if (!jobId) return
-    try {
-      await fetch(`${API_BASE_URL}/jobs/${jobId}/cancel`, { method: 'POST' })
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  /* ---------------- Semantic search ---------------- */
-  const handleSearch = async (query) => {
-    if (!jobId) return alert('Start a crawl first')
-
-    const params = new URLSearchParams({
-      job_id: jobId,
-      q: query,
-      limit: '12',
-    })
-
-    const resp = await fetch(`${API_BASE_URL}/search?${params}`)
-    if (!resp.ok) return alert('Search failed')
-
-    setResults(await resp.json())
-  }
-
-  const searchEnabled =
-    status.status === 'indexing' ||
-    status.status === 'completed' ||
-    status.status === 'failed'
 
   // Simulate initial loading
   useEffect(() => {
@@ -147,28 +85,8 @@ export default function Home() {
         </header>
 
         <section className="main-content">
-          <div className="primary-card panel">
+          <div className="primary-card">
             <URLPanel onStartCrawl={startCrawl} />
-          </div>
-
-          <div className="secondary-row">
-            <div className="panel">
-              <StatusPanel
-                jobId={jobId}
-                status={status}
-                wsError={wsError}
-                onCancelJob={cancelJob}
-              />
-            </div>
-
-            <div className="panel">
-              <SearchPanel
-                enabled={searchEnabled}
-                status={status}
-                results={results}
-                onSearch={handleSearch}
-              />
-            </div>
           </div>
         </section>
       </main>
