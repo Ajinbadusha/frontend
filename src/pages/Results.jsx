@@ -90,7 +90,8 @@ export default function Results() {
       <header className="results-header">
         <div className="results-header-content">
           <div className="results-logo">
-            <Logo variant="default" size="medium" />
+            <Logo variant="icon-only" size="medium" />
+            <h1>INNOCRAWL</h1>
           </div>
           <button className="back-button" onClick={() => navigate('/')}>
             ← Back to Home

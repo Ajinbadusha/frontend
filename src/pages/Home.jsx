@@ -54,6 +54,8 @@ export default function Home() {
 
         <nav className="sidebar-nav">
           <button className="nav-item nav-item-active">＋ New Crawl</button>
+          <button className="nav-item">▤ Live Monitor</button>
+          <button className="nav-item">🔍 Semantic Search</button>
         </nav>
 
         <div className="sidebar-footer">
@@ -66,7 +68,7 @@ export default function Home() {
       <main className="main-area">
         <header className="main-header">
           <div className="header-left">
-            <Logo variant="default" size="small" />
+            <Logo variant="icon-only" size="small" />
             <div>
               <h1>Ecommerce Crawler</h1>
               <p>

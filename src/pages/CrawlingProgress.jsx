@@ -43,6 +43,13 @@ export default function CrawlingProgress() {
           setCurrentStep(steps[stepIndex].description)
           setProgress(((stepIndex + 1) / steps.length) * 100)
         }
+
+        // Redirect to results page when completed
+        if (data.status === 'completed' || data.status === 'failed') {
+          setTimeout(() => {
+            navigate('/results', { state: { jobId, url, status: data } })
+          }, 2000)
+        }
       } catch (err) {
         console.error('WS parse error', err)
       }
@@ -56,7 +63,6 @@ export default function CrawlingProgress() {
   }, [jobId, navigate])
 
   const currentStepIndex = steps.findIndex(s => s.key === status.status)
-  const isDone = status.status === 'completed' || status.status === 'failed'
 
   return (
     <div className="crawling-progress-page">
@@ -122,17 +128,6 @@ export default function CrawlingProgress() {
           {url && (
             <div className="crawling-url">
               <small>Crawling: {url}</small>
-            </div>
-          )}
-
-          {isDone && (
-            <div className="crawling-next-row">
-              <button
-                className="btn btn-primary"
-                onClick={() => navigate('/results', { state: { jobId, url, status } })}
-              >
-                Next → View results
-              </button>
             </div>
           )}
         </div>
