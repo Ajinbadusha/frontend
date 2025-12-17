@@ -13,6 +13,10 @@ export default function Results() {
   const [searchQuery, setSearchQuery] = useState('')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [availability, setAvailability] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [productDetail, setProductDetail] = useState(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
@@ -34,6 +38,11 @@ export default function Results() {
         q: searchQuery,
         limit: '20',
       })
+
+      if (categoryFilter.trim()) params.set('category', categoryFilter.trim())
+      if (minPrice) params.set('min_price', String(minPrice))
+      if (maxPrice) params.set('max_price', String(maxPrice))
+      if (availability) params.set('availability', availability)
 
       const resp = await fetch(`${API_BASE_URL}/search?${params}`)
       if (resp.ok) {
@@ -105,10 +114,66 @@ export default function Results() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="results-search-input"
             />
+            <div className="results-filters">
+              <input
+                type="text"
+                placeholder="Category"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="filter-input"
+              />
+              <input
+                type="number"
+                placeholder="Min price"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="filter-input price-input"
+                min="0"
+              />
+              <input
+                type="number"
+                placeholder="Max price"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="filter-input price-input"
+                min="0"
+              />
+              <select
+                className="filter-input"
+                value={availability}
+                onChange={(e) => setAvailability(e.target.value)}
+              >
+                <option value="">Any stock</option>
+                <option value="in stock">In stock</option>
+                <option value="out of stock">Out of stock</option>
+              </select>
+            </div>
             <button type="submit" className="results-search-button" disabled={loading || !searchQuery.trim()}>
               {loading ? 'Searching...' : 'Search'}
             </button>
           </form>
+
+          {(categoryFilter || minPrice || maxPrice || availability) && (
+            <div className="results-active-filters">
+              <span>Filters:</span>
+              {categoryFilter && <span className="filter-chip">Category: {categoryFilter}</span>}
+              {minPrice && <span className="filter-chip">Min: ${minPrice}</span>}
+              {maxPrice && <span className="filter-chip">Max: ${maxPrice}</span>}
+              {availability && <span className="filter-chip">Availability: {availability}</span>}
+              <button
+                type="button"
+                className="clear-filters"
+                onClick={() => {
+                  setCategoryFilter('')
+                  setMinPrice('')
+                  setMaxPrice('')
+                  setAvailability('')
+                }}
+              >
+                Clear
+              </button>
+            </div>
+          )}
 
           {results.length > 0 && (
             <div className="results-count">
@@ -144,10 +209,17 @@ export default function Results() {
                     {product.price != null && (
                       <div className="product-price">${product.price}</div>
                     )}
-                    {product.description && (
+                    {product.match_reason && (
+                      <p className="product-match-reason">
+                        Match: {product.match_reason.length > 120
+                          ? `${product.match_reason.substring(0, 120)}...`
+                          : product.match_reason}
+                      </p>
+                    )}
+                    {(product.description && !product.match_reason) && (
                       <p className="product-description">
-                        {product.description.length > 100
-                          ? `${product.description.substring(0, 100)}...`
+                        {product.description.length > 140
+                          ? `${product.description.substring(0, 140)}...`
                           : product.description}
                       </p>
                     )}
