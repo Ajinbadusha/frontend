@@ -326,7 +326,7 @@ body {
   gap: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #374151;
+  color: #f9fafb;
 }
 
 .toggle input[type="checkbox"] {
