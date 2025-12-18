@@ -13,6 +13,7 @@ export default function CrawlingProgress() {
   const [status, setStatus] = useState({ status: 'queued', counters: {} })
   const [progress, setProgress] = useState(0)
   const [currentStep, setCurrentStep] = useState('Initializing crawl...')
+  const [isCancelling, setIsCancelling] = useState(false)
 
   const steps = [
     { key: 'queued', label: 'Queued', description: 'Job added to queue' },
@@ -30,30 +31,89 @@ export default function CrawlingProgress() {
       return
     }
 
-        const wsBase = API_BASE_URL.replace(/^http/, 'ws')
-        const ws = new WebSocket(`${wsBase}/ws?job_id=${encodeURIComponent(jobId)}`)
+    let ws = null
+    let reconnectAttempts = 0
+    const maxReconnectAttempts = 10
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        setStatus(data)
-        
-        const stepIndex = steps.findIndex(s => s.key === data.status)
-        if (stepIndex >= 0) {
-          setCurrentStep(steps[stepIndex].description)
-          setProgress(((stepIndex + 1) / steps.length) * 100)
+    const connect = () => {
+      const wsBase = API_BASE_URL.replace(/^http/, 'ws')
+      ws = new WebSocket(`${wsBase}/ws?job_id=${encodeURIComponent(jobId)}`)
+
+      ws.onopen = () => {
+        console.log('WebSocket connected')
+        reconnectAttempts = 0
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          setStatus(data)
+
+          const stepIndex = steps.findIndex((s) => s.key === data.status)
+          if (stepIndex >= 0) {
+            setCurrentStep(steps[stepIndex].description)
+            setProgress(((stepIndex + 1) / steps.length) * 100)
+          }
+        } catch (err) {
+          console.error('WS parse error', err)
         }
-      } catch (err) {
-        console.error('WS parse error', err)
+      }
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error)
+        setCurrentStep('Connection error. Retrying...')
+      }
+
+      ws.onclose = () => {
+        console.log('WebSocket closed')
+
+        if (reconnectAttempts < maxReconnectAttempts) {
+          reconnectAttempts++
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000)
+          console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`)
+          setTimeout(connect, delay)
+        } else {
+          setCurrentStep('Connection lost. Please refresh the page.')
+        }
       }
     }
 
-    ws.onerror = () => {
-      setCurrentStep('Connection error. Retrying...')
+    connect()
+
+    return () => {
+      if (ws) {
+        ws.onclose = null // Prevent reconnection on unmount
+        ws.close()
+      }
+    }
+  }, [jobId, navigate, steps])
+
+  const handleCancel = async () => {
+    if (!jobId) return
+
+    // Use window.confirm; in most browsers this is fine for a simple demo
+    // eslint-disable-next-line no-restricted-globals
+    if (!confirm('Are you sure you want to cancel this crawl?')) {
+      return
     }
 
-    return () => ws.close()
-  }, [jobId, navigate])
+    setIsCancelling(true)
+    try {
+      const resp = await fetch(`${API_BASE_URL}/jobs/${jobId}/cancel`, {
+        method: 'POST',
+      })
+      if (resp.ok) {
+        setCurrentStep('Cancellation requested...')
+      } else {
+        alert('Failed to cancel job')
+      }
+    } catch (error) {
+      console.error('Cancel error:', error)
+      alert('Failed to cancel job')
+    } finally {
+      setIsCancelling(false)
+    }
+  }
 
   const currentStepIndex = steps.findIndex(s => s.key === status.status)
 
@@ -124,7 +184,24 @@ export default function CrawlingProgress() {
             </div>
           )}
 
-          {(status.status === 'completed' || status.status === 'failed') && (
+          {status.status !== 'completed' &&
+            status.status !== 'failed' &&
+            status.status !== 'cancelled' && (
+              <div className="crawling-actions">
+                <button
+                  type="button"
+                  className="crawling-cancel-button"
+                  onClick={handleCancel}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? 'Cancelling...' : 'Cancel Crawl'}
+                </button>
+              </div>
+            )}
+
+          {(status.status === 'completed' ||
+            status.status === 'failed' ||
+            status.status === 'cancelled') && (
             <div className="crawling-actions">
               <button
                 type="button"
