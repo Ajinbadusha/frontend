@@ -1,6 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 function SearchPanel({ jobId, status, enabled, onSearch, results }) {
+  const [categories, setCategories] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null)
   const [detail, setDetail] = useState(null)
@@ -9,7 +13,14 @@ function SearchPanel({ jobId, status, enabled, onSearch, results }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!enabled) return
-    onSearch(query, {})
+    
+    const filters = {
+      category: selectedCategory || undefined,
+      min_price: minPrice || undefined,
+      max_price: maxPrice || undefined,
+      # Note: Availability filter is not implemented in the backend search endpoint yet, so we omit it.
+    }
+      onSearch(query, filters)filters)
   }
 
   const handleOpenDetail = async (product) => {
@@ -37,6 +48,26 @@ function SearchPanel({ jobId, status, enabled, onSearch, results }) {
     setDetail(null)
   }
 
+  // Effect to fetch categories when the job status changes to completed
+  useEffect(() => {
+    if (jobId && status === 'completed') {
+      const fetchCategories = async () => {
+        try {
+          const resp = await fetch(
+            `${import.meta.env.VITE_API_URL}/jobs/${encodeURIComponent(jobId)}/categories`,
+          )
+          if (resp.ok) {
+            const data = await resp.json()
+            setCategories(data)
+          }
+        } catch (error) {
+          console.error('Failed to fetch categories:', error)
+        }
+      }
+      fetchCategories()
+    }
+  }, [jobId, status])
+
   const statusText = enabled
     ? 'Search is ready'
     : 'Search will be enabled after indexing is available.'
@@ -51,6 +82,38 @@ function SearchPanel({ jobId, status, enabled, onSearch, results }) {
           placeholder="Search: “red winter dress”, “leather shoes”, “vitamin c serum”"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          disabled={!enabled}
+        />
+        
+        {/* Category Filter */}
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          disabled={!enabled || categories.length === 0}
+        >
+          <option value="">Category</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+
+        {/* Min Price Filter */}
+        <input
+          type="number"
+          placeholder="Min price"
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+          disabled={!enabled}
+        />
+
+        {/* Max Price Filter */}
+        <input
+          type="number"
+          placeholder="Max price"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
           disabled={!enabled}
         />
         <button type="submit" className="btn-primary" disabled={!enabled || !query.trim()}>
