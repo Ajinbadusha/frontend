@@ -18,9 +18,32 @@ function SearchPanel({ jobId, status, enabled, onSearch, results }) {
       category: selectedCategory || undefined,
       min_price: minPrice || undefined,
       max_price: maxPrice || undefined,
-      # Note: Availability filter is not implemented in the backend search endpoint yet, so we omit it.
+      // Note: Availability filter is not implemented in the backend search endpoint yet, so we omit it.
     }
-      onSearch(query, filters)filters)
+    
+    onSearch(query, filters)
+  }
+
+  const handleDownload = () => {
+    if (!enabled) return
+
+    const downloadUrl = new URL(`${import.meta.env.VITE_API_URL}/search/download`)
+    downloadUrl.searchParams.append('job_id', jobId)
+    downloadUrl.searchParams.append('q', query)
+
+    // Add filters to the URL
+    if (selectedCategory) {
+      downloadUrl.searchParams.append('category', selectedCategory)
+    }
+    if (minPrice) {
+      downloadUrl.searchParams.append('min_price', minPrice)
+    }
+    if (maxPrice) {
+      downloadUrl.searchParams.append('max_price', maxPrice)
+    }
+
+    // Trigger the download (this will open the "Save As" dialog)
+    window.open(downloadUrl.toString(), '_blank')
   }
 
   const handleOpenDetail = async (product) => {
@@ -116,8 +139,18 @@ function SearchPanel({ jobId, status, enabled, onSearch, results }) {
           onChange={(e) => setMaxPrice(e.target.value)}
           disabled={!enabled}
         />
+
         <button type="submit" className="btn-primary" disabled={!enabled || !query.trim()}>
           Search
+        </button>
+
+        <button
+          type="button"
+          className="btn-secondary"
+          disabled={!enabled}
+          onClick={handleDownload}
+        >
+          Download Overview
         </button>
       </form>
 
