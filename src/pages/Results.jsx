@@ -116,6 +116,34 @@ export default function Results() {
     document.body.removeChild(a);
   };
 
+  const handleDownloadInvoice = async (productId) => {
+    try {
+      const resp = await fetch(
+        `${API_BASE_URL}/products/${encodeURIComponent(
+          productId
+        )}/invoice-image`,
+        { method: "POST" }
+      );
+      if (!resp.ok) {
+        alert("Failed to generate download");
+        return;
+      }
+      const data = await resp.json();
+      const url = data.invoice_image_url;
+      if (!url) return;
+  
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = url.split("/").pop() || "product-invoice.png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Download error", err);
+      alert("Failed to download image");
+    }
+  };
+  
   return (
     <div className="results-page">
       <header className="results-header">
@@ -286,20 +314,21 @@ export default function Results() {
                       >
                         View Original →
                       </a>
-
-                      {product.images?.[0] && (
+                    
+                      {product.id && (
                         <button
                           type="button"
                           className="product-download-button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDownloadImage(product.images[0]);
+                            handleDownloadInvoice(product.id);  // <— use invoice endpoint
                           }}
                         >
                           Download image
                         </button>
                       )}
                     </div>
+
                   </div>
                 </div>
               ))
