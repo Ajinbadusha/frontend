@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 export default function Results() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { jobId, url, status } = location.state || {};
+  const { jobId, url } = location.state || {};
 
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -105,7 +105,34 @@ export default function Results() {
     setProductDetail(null);
   };
 
-  // only change needed: support both string and {url} image entries
+  const handleDownloadInvoice = async (productId) => {
+    try {
+      const resp = await fetch(
+        `${API_BASE_URL}/products/${encodeURIComponent(
+          productId
+        )}/invoice-image`,
+        { method: "POST" }
+      );
+      if (!resp.ok) {
+        alert("Failed to generate download");
+        return;
+      }
+      const data = await resp.json();
+      const url = data.invoice_image_url;
+      if (!url) return;
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = url.split("/").pop() || "product-invoice.png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Download error", err);
+      alert("Failed to download image");
+    }
+  };
+
   const getFirstImageUrl = (images) => {
     if (!images || images.length === 0) return "";
     const first = images[0];
@@ -287,6 +314,19 @@ export default function Results() {
                         >
                           View Original →
                         </a>
+
+                        {product.id && (
+                          <button
+                            type="button"
+                            className="product-download-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadInvoice(product.id);
+                            }}
+                          >
+                            Download image
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
