@@ -9,20 +9,21 @@ export default function CrawlingProgress() {
   const navigate = useNavigate()
   const location = useLocation()
   const { jobId, url } = location.state || {}
-  
-  const [status, setStatus] = useState({ status: 'queued', counters: {} })
+
+  const [status, setStatus] = useState({ status: 'queued', counters: {}, error: null })
   const [progress, setProgress] = useState(0)
   const [currentStep, setCurrentStep] = useState('Initializing crawl...')
   const [isCancelling, setIsCancelling] = useState(false)
+  const [connectionError, setConnectionError] = useState(null)
 
   const steps = [
-    { key: 'queued',      label: 'Queued',      description: 'Job added to queue' },
-    { key: 'crawling',    label: 'Crawling',    description: 'Visiting pages and discovering products' },
-    { key: 'parsing',     label: 'Parsing',     description: 'Extracting product information' },
+    { key: 'queued', label: 'Queued', description: 'Job added to queue' },
+    { key: 'crawling', label: 'Crawling', description: 'Visiting pages and discovering products' },
+    { key: 'parsing', label: 'Parsing', description: 'Extracting product information' },
     { key: 'downloading', label: 'Downloading', description: 'Downloading product images' },
-    { key: 'enriching',   label: 'Enriching',   description: 'AI-powered product enrichment' },
-    { key: 'indexing',    label: 'Indexing',    description: 'Preparing for semantic search' },
-    { key: 'completed',   label: 'Completed',   description: 'Crawl finished successfully' },
+    { key: 'enriching', label: 'Enriching', description: 'AI-powered product enrichment' },
+    { key: 'indexing', label: 'Indexing', description: 'Preparing for semantic search' },
+    { key: 'completed', label: 'Completed', description: 'Crawl finished successfully' },
   ]
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function CrawlingProgress() {
 
       ws.onopen = () => {
         reconnectAttempts = 0
+        setConnectionError(null)
       }
 
       ws.onmessage = (event) => {
@@ -51,7 +53,18 @@ export default function CrawlingProgress() {
           const stepIndex = steps.findIndex((s) => s.key === data.status)
           if (stepIndex >= 0) {
             setCurrentStep(steps[stepIndex].description)
-            setProgress(((stepIndex + 1) / steps.length) * 100)
+
+            // If job is completed or failed, force progress to 100
+            if (data.status === 'completed' || data.status === 'failed') {
+              setProgress(100)
+            } else {
+              setProgress(((stepIndex + 1) / steps.length) * 100)
+            }
+          }
+
+          // If backend reports failure, reflect that immediately
+          if (data.status === 'failed') {
+            setCurrentStep(data.error || 'Crawl failed. Please review job logs.')
           }
         } catch (err) {
           console.error('WS parse error', err)
@@ -60,6 +73,7 @@ export default function CrawlingProgress() {
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error)
+        setConnectionError('WebSocket connection error.')
         setCurrentStep('Connection error. Retrying...')
       }
 
@@ -69,6 +83,7 @@ export default function CrawlingProgress() {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000)
           setTimeout(connect, delay)
         } else {
+          setConnectionError('Connection lost. Please refresh the page.')
           setCurrentStep('Connection lost. Please refresh the page.')
         }
       }
@@ -82,16 +97,14 @@ export default function CrawlingProgress() {
         ws.close()
       }
     }
-  }, [jobId, navigate, steps])
+  }, [jobId, navigate])
 
   const handleCancel = async () => {
     if (!jobId) return
-
     // eslint-disable-next-line no-restricted-globals
     if (!confirm('Are you sure you want to cancel this crawl?')) {
       return
     }
-
     setIsCancelling(true)
     try {
       const resp = await fetch(`${API_BASE_URL}/jobs/${jobId}/cancel`, {
@@ -110,110 +123,114 @@ export default function CrawlingProgress() {
     }
   }
 
-  const currentStepIndex = steps.findIndex(s => s.key === status.status)
-
+  const currentStepIndex = steps.findIndex((s) => s.key === status.status)
   const counters = status.counters || {}
   const pagesVisited = counters.pages_visited ?? 0
   const productsFound = counters.products_discovered ?? 0
   const productsExtracted = counters.products_extracted ?? 0
 
   return (
-    <div className="crawling-progress-page">
-      <div className="crawling-container">
-        <div className="crawling-logo">
-          <Logo variant="default" size="xl" />
-        </div>
+    <div className="crawl-layout">
+      <header className="crawl-header">
+        <Logo />
+      </header>
 
-        <div className="crawling-content">
-          <div className="crawling-header-row">
-            <div className="crawling-header-text">
-              <h1 className="crawling-title">Crawling in Progress</h1>
-              <p className="crawling-subtitle">{currentStep}</p>
+      <main className="crawl-main">
+        <section className="crawl-card">
+          <div className="crawl-card-header">
+            <div>
+              <h1>Crawling in Progress</h1>
+              <p>Visiting pages and discovering products</p>
+              {url && (
+                <p className="crawl-url">
+                  Source:{' '}
+                  <a href={url} target="_blank" rel="noreferrer">
+                    {url}
+                  </a>
+                </p>
+              )}
             </div>
-            <div className="crawling-status-box">
-              <div className="status-box-label">Job status</div>
-              <div className="status-box-value">{status.status || 'idle'}</div>
-              <div className="status-box-progress">{Math.round(progress)}%</div>
+            <div className="crawl-status-pill">
+              <span className="label">Job Status</span>
+              <span className="value">
+                {status.status === 'failed' ? 'failed' : status.status}
+              </span>
+              <span className="percent">{Math.round(progress)}%</span>
             </div>
           </div>
 
-          <div className="progress-bar-container">
-            <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+          <div className="crawl-progress-bar">
+            <div
+              className="crawl-progress-bar-inner"
+              style={{ width: `${progress}%` }}
+            />
           </div>
 
-          <div className="progress-steps">
-            {steps.map((step, index) => {
-              const isActive = index === currentStepIndex
-              const isCompleted = index < currentStepIndex
-              
+          <p className="crawl-current-step">{currentStep}</p>
+
+          {connectionError && (
+            <p className="crawl-error-text">{connectionError}</p>
+          )}
+
+          <ol className="crawl-steps">
+            {steps.map((step, idx) => {
+              const isComplete = idx < currentStepIndex
+              const isActive = idx === currentStepIndex
               return (
-                <div
+                <li
                   key={step.key}
-                  className={`progress-step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
+                  className={[
+                    'crawl-step',
+                    isComplete ? 'complete' : '',
+                    isActive ? 'active' : '',
+                  ]
+                    .join(' ')
+                    .trim()}
                 >
-                  <div className="step-indicator">
-                    {isCompleted ? '✓' : index + 1}
-                  </div>
+                  <span className="step-index">{idx + 1}</span>
                   <div className="step-content">
-                    <div className="step-label">{step.label}</div>
-                    {isActive && <div className="step-description">{step.description}</div>}
+                    <div className="step-title">{step.label}</div>
+                    <div className="step-desc">{step.description}</div>
                   </div>
-                </div>
+                </li>
               )
             })}
+          </ol>
+
+          <div className="crawl-metrics">
+            <div className="metric">
+              <span className="metric-label">Pages visited</span>
+              <span className="metric-value">{pagesVisited}</span>
+            </div>
+            <div className="metric">
+              <span className="metric-label">Products found</span>
+              <span className="metric-value">{productsFound}</span>
+            </div>
+            <div className="metric">
+              <span className="metric-label">Products extracted</span>
+              <span className="metric-value">{productsExtracted}</span>
+            </div>
           </div>
 
-          <div className="crawling-stats">
-            <div className="stat-item">
-              <span className="stat-label">Pages Visited</span>
-              <span className="stat-value">{pagesVisited}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">Products Found</span>
-              <span className="stat-value">{productsFound}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">Products Extracted</span>
-              <span className="stat-value">{productsExtracted}</span>
-            </div>
+          <div className="crawl-actions">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => navigate('/')}
+            >
+              Back to Home
+            </button>
+            <button
+              type="button"
+              className="btn-danger"
+              onClick={handleCancel}
+              disabled={isCancelling || status.status === 'completed'}
+            >
+              {isCancelling ? 'Cancelling...' : 'Cancel Crawl'}
+            </button>
           </div>
-
-          {url && (
-            <div className="crawling-url">
-              <small>Crawling: {url}</small>
-            </div>
-          )}
-
-          {status.status !== 'completed' &&
-            status.status !== 'failed' &&
-            status.status !== 'cancelled' && (
-              <div className="crawling-actions">
-                <button
-                  type="button"
-                  className="crawling-cancel-button"
-                  onClick={handleCancel}
-                  disabled={isCancelling}
-                >
-                  {isCancelling ? 'Cancelling...' : 'Cancel Crawl'}
-                </button>
-              </div>
-            )}
-
-          {(status.status === 'completed' ||
-            status.status === 'failed' ||
-            status.status === 'cancelled') && (
-            <div className="crawling-actions">
-              <button
-                type="button"
-                className="crawling-next-button"
-                onClick={() => navigate('/results', { state: { jobId, url, status } })}
-              >
-                View search results →
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   )
 }
