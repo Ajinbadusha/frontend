@@ -105,35 +105,7 @@ export default function Results() {
     setProductDetail(null);
   };
 
-  const handleDownloadInvoice = async (productId) => {
-    try {
-      const resp = await fetch(
-        `${API_BASE_URL}/products/${encodeURIComponent(
-          productId
-        )}/invoice-image`,
-        { method: "POST" }
-      );
-      if (!resp.ok) {
-        alert("Failed to generate download");
-        return;
-      }
-      const data = await resp.json();
-      const url = data.invoice_image_url;
-      if (!url) return;
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = url.split("/").pop() || "product-invoice.png";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error("Download error", err);
-      alert("Failed to download image");
-    }
-  };
-
-  // helper to get first image URL from either string[] or {url}[]
+  // only change needed: support both string and {url} image entries
   const getFirstImageUrl = (images) => {
     if (!images || images.length === 0) return "";
     const first = images[0];
@@ -265,7 +237,7 @@ export default function Results() {
               </div>
             ) : (
               results.map((product) => {
-                const imageUrl = getFirstImageUrl(product.images);
+                const imgUrl = getFirstImageUrl(product.images);
                 return (
                   <div
                     key={product.id}
@@ -273,9 +245,9 @@ export default function Results() {
                     onClick={() => handleProductClick(product)}
                   >
                     <div className="product-image-container">
-                      {imageUrl ? (
+                      {imgUrl ? (
                         <img
-                          src={imageUrl}
+                          src={imgUrl}
                           alt={product.title}
                           className="product-image"
                         />
@@ -315,19 +287,6 @@ export default function Results() {
                         >
                           View Original →
                         </a>
-
-                        {product.id && (
-                          <button
-                            type="button"
-                            className="product-download-button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownloadInvoice(product.id);
-                            }}
-                          >
-                            Download image
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
