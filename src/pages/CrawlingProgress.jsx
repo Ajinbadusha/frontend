@@ -82,15 +82,15 @@ export default function CrawlingProgress() {
         }
       };
 
-      ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+      ws.onerror = (err) => {
+        console.error("WebSocket error", err);
         setCurrentStep("Connection error. Retrying...");
       };
 
       ws.onclose = () => {
         if (reconnectAttempts < maxReconnectAttempts) {
-          reconnectAttempts++;
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+          reconnectAttempts += 1;
+          const delay = Math.min(1000 * 2 ** reconnectAttempts, 30000);
           setTimeout(connect, delay);
         } else {
           setCurrentStep("Connection lost. Please refresh the page.");
@@ -124,7 +124,7 @@ export default function CrawlingProgress() {
         setCurrentStep("Cancellation requested...");
       }
     } catch (err) {
-      console.error("Cancel error:", err);
+      console.error("Cancel error", err);
       alert("Failed to cancel job");
     } finally {
       setIsCancelling(false);
@@ -139,45 +139,45 @@ export default function CrawlingProgress() {
   const productsEnriched = counters.products_enriched ?? 0;
 
   return (
-    <div className="crawl-page">
-      <header className="crawl-header">
+    <div className="crawling-page">
+      <header className="crawling-header">
         <Logo />
         <button
-          className="crawl-header-button"
           type="button"
+          className="crawling-header-button"
           onClick={() => navigate("/jobs")}
         >
           View Jobs
         </button>
       </header>
 
-      <main className="crawl-main">
-        <section className="crawl-card">
-          <div className="crawl-card-header">
+      <main className="crawling-main">
+        <section className="crawling-card">
+          <div className="crawling-card-header">
             <h1>Crawling in Progress</h1>
             {url && (
-              <p className="crawl-target-url">
+              <p className="crawling-target">
                 <span>Target:</span> {url}
               </p>
             )}
           </div>
 
-          <div className="crawl-steps">
+          <div className="crawling-steps">
             {steps.map((step, index) => (
               <div
                 key={step.key}
                 className={[
-                  "crawl-step",
-                  index < currentStepIndex ? "crawl-step-completed" : "",
-                  index === currentStepIndex ? "crawl-step-current" : "",
+                  "crawling-step",
+                  index < currentStepIndex ? "crawling-step-completed" : "",
+                  index === currentStepIndex ? "crawling-step-current" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
               >
-                <div className="crawl-step-index">{index + 1}</div>
-                <div className="crawl-step-body">
-                  <div className="crawl-step-title">{step.label}</div>
-                  <div className="crawl-step-description">
+                <div className="crawling-step-index">{index + 1}</div>
+                <div className="crawling-step-body">
+                  <div className="crawling-step-title">{step.label}</div>
+                  <div className="crawling-step-description">
                     {step.description}
                   </div>
                 </div>
@@ -185,56 +185,54 @@ export default function CrawlingProgress() {
             ))}
           </div>
 
-          <div className="crawl-progress">
-            <div className="crawl-progress-label">
+          <div className="crawling-progress">
+            <div className="crawling-progress-label">
               {currentStep} ({Math.round(progress)}%)
             </div>
-            <div className="crawl-progress-bar">
+            <div className="crawling-progress-bar">
               <div
-                className="crawl-progress-bar-fill"
+                className="crawling-progress-bar-fill"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
-          {/* Real-time counters in your existing section */}
-          <div className="crawl-metrics">
-            <div className="crawl-metric">
-              <div className="crawl-metric-label">PAGES VISITED</div>
-              <div className="crawl-metric-value">{pagesVisited}</div>
+          {/* metrics section – only numbers are dynamic */}
+          <div className="crawling-metrics">
+            <div className="crawling-metric">
+              <div className="crawling-metric-label">Pages visited</div>
+              <div className="crawling-metric-value">{pagesVisited}</div>
             </div>
-            <div className="crawl-metric">
-              <div className="crawl-metric-label">PRODUCTS FOUND</div>
-              <div className="crawl-metric-value">{productsFound}</div>
+            <div className="crawling-metric">
+              <div className="crawling-metric-label">Products found</div>
+              <div className="crawling-metric-value">{productsFound}</div>
             </div>
-            <div className="crawl-metric">
-              <div className="crawl-metric-label">PRODUCTS ENRICHED</div>
-              <div className="crawl-metric-value">{productsEnriched}</div>
+            <div className="crawling-metric">
+              <div className="crawling-metric-label">Products enriched</div>
+              <div className="crawling-metric-value">{productsEnriched}</div>
             </div>
           </div>
 
-          <div className="crawl-actions">
+          <div className="crawling-actions">
             <button
-              className="crawl-secondary-button"
               type="button"
+              className="crawling-secondary-button"
               onClick={() => navigate("/jobs")}
             >
               View Jobs
             </button>
-
             <button
-              className="crawl-danger-button"
               type="button"
+              className="crawling-danger-button"
               onClick={handleCancel}
               disabled={isCancelling || status.status === "completed"}
             >
               {isCancelling ? "Cancelling..." : "Cancel Job"}
             </button>
-
             {status.status === "completed" && (
               <button
-                className="crawl-primary-button"
                 type="button"
+                className="crawling-primary-button"
                 onClick={() =>
                   navigate("/results", {
                     state: { jobId, url },

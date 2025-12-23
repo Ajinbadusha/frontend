@@ -6,8 +6,8 @@ import "./Results.css";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function Results() {
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { jobId, url } = location.state || {};
 
   const [query, setQuery] = useState("");
@@ -15,7 +15,6 @@ export default function Results() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // New: categories + selected category, but wired into your existing UI
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -29,7 +28,6 @@ export default function Results() {
       return;
     }
 
-    // Fetch distinct categories for this job
     const fetchCategories = async () => {
       try {
         const resp = await fetch(
@@ -56,7 +54,6 @@ export default function Results() {
     const params = new URLSearchParams();
     params.set("job_id", jobId);
     params.set("q", query || "");
-
     if (selectedCategory) params.set("category", selectedCategory);
     if (minPrice) params.set("min_price", minPrice);
     if (maxPrice) params.set("max_price", maxPrice);
@@ -99,15 +96,14 @@ export default function Results() {
     a.click();
     document.body.removeChild(a);
   };
-  
 
   return (
     <div className="results-page">
       <header className="results-header">
         <Logo />
         <button
-          className="results-header-button"
           type="button"
+          className="results-header-button"
           onClick={() => navigate("/jobs")}
         >
           View Jobs
@@ -125,13 +121,12 @@ export default function Results() {
             )}
           </div>
 
-          {/* Filters – same layout, with category wired to backend */}
           <form className="results-filters" onSubmit={handleSearch}>
             <div className="results-filter-row">
               <div className="results-filter-group results-filter-query">
-                <label htmlFor="results-query">Search query</label>
+                <label htmlFor="query">Search query</label>
                 <input
-                  id="results-query"
+                  id="query"
                   type="text"
                   placeholder="e.g. red running shoes"
                   value={query}
@@ -142,9 +137,9 @@ export default function Results() {
 
             <div className="results-filter-row">
               <div className="results-filter-group">
-                <label htmlFor="results-category">Category</label>
+                <label htmlFor="category">Category</label>
                 <select
-                  id="results-category"
+                  id="category"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
@@ -158,9 +153,9 @@ export default function Results() {
               </div>
 
               <div className="results-filter-group">
-                <label htmlFor="results-min-price">Min price</label>
+                <label htmlFor="minPrice">Min price</label>
                 <input
-                  id="results-min-price"
+                  id="minPrice"
                   type="number"
                   min="0"
                   value={minPrice}
@@ -169,9 +164,9 @@ export default function Results() {
               </div>
 
               <div className="results-filter-group">
-                <label htmlFor="results-max-price">Max price</label>
+                <label htmlFor="maxPrice">Max price</label>
                 <input
-                  id="results-max-price"
+                  id="maxPrice"
                   type="number"
                   min="0"
                   value={maxPrice}
@@ -180,9 +175,9 @@ export default function Results() {
               </div>
 
               <div className="results-filter-group">
-                <label htmlFor="results-availability">Availability</label>
+                <label htmlFor="availability">Availability</label>
                 <input
-                  id="results-availability"
+                  id="availability"
                   type="text"
                   placeholder="e.g. in stock"
                   value={availability}
@@ -193,18 +188,18 @@ export default function Results() {
 
             <div className="results-filter-actions">
               <button
-                className="results-primary-button"
                 type="submit"
+                className="results-primary-button"
                 disabled={loading}
               >
                 {loading ? "Searching..." : "Search"}
               </button>
               <button
-                className="results-secondary-button"
                 type="button"
+                className="results-secondary-button"
                 onClick={handleReset}
               >
-                Reset
+                Reset filters
               </button>
             </div>
           </form>
@@ -270,16 +265,17 @@ export default function Results() {
                       View on site
                     </a>
 
-                    {product.images?.[0] && (
+                    {product.images && product.images.length > 0 && (
                       <button
                         type="button"
-                        className="results-secondary-button" // keep your class
-                        onClick={() => handleDownloadImage(product.images[0])}
+                        className="results-secondary-button"
+                        onClick={() =>
+                          handleDownloadImage(product.images[0])
+                        }
                       >
                         Download image
                       </button>
                     )}
-
                   </div>
                 </div>
               </article>
