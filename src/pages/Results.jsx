@@ -17,7 +17,6 @@ export default function Results() {
 
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [availability, setAvailability] = useState("");
@@ -98,177 +97,150 @@ export default function Results() {
   };
 
   return (
-    <div className="results-page">
-      <header className="results-header">
+    <div className="res-page">
+      <header className="res-header">
         <Logo />
         <button
           type="button"
-          className="results-header-button"
-          onClick={() => navigate("/jobs")}
+          className="res-back-button"
+          onClick={() => navigate("/")}
         >
-          View Jobs
+          ← Back to Home
         </button>
       </header>
 
-      <main className="results-main">
-        <section className="results-card">
-          <div className="results-card-header">
-            <h1>Product Search Results</h1>
+      <main className="res-main">
+        <section className="res-card">
+          <div className="res-card-header">
+            <h1 className="res-title">Product Search Results</h1>
             {url && (
-              <p className="results-source">
-                <span>Source:</span> {url}
+              <p className="res-source">
+                Source: <span>{url}</span>
               </p>
             )}
           </div>
 
-          <form className="results-filters" onSubmit={handleSearch}>
-            <div className="results-filter-row">
-              <div className="results-filter-group results-filter-query">
-                <label htmlFor="query">Search query</label>
-                <input
-                  id="query"
-                  type="text"
-                  placeholder="e.g. red running shoes"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              </div>
-            </div>
+          {/* filter row like screenshot */}
+          <form className="res-filters" onSubmit={handleSearch}>
+            <div className="res-filters-row">
+              <input
+                className="res-input res-input-query"
+                type="text"
+                placeholder="Search query"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
 
-            <div className="results-filter-row">
-              <div className="results-filter-group">
-                <label htmlFor="category">Category</label>
-                <select
-                  id="category"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="">All categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                className="res-input res-input-category"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="">Category</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
 
-              <div className="results-filter-group">
-                <label htmlFor="minPrice">Min price</label>
-                <input
-                  id="minPrice"
-                  type="number"
-                  min="0"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                />
-              </div>
+              <input
+                className="res-input res-input-price"
+                type="number"
+                placeholder="Min price"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+              />
 
-              <div className="results-filter-group">
-                <label htmlFor="maxPrice">Max price</label>
-                <input
-                  id="maxPrice"
-                  type="number"
-                  min="0"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                />
-              </div>
+              <input
+                className="res-input res-input-price"
+                type="number"
+                placeholder="Max price"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+              />
 
-              <div className="results-filter-group">
-                <label htmlFor="availability">Availability</label>
-                <input
-                  id="availability"
-                  type="text"
-                  placeholder="e.g. in stock"
-                  value={availability}
-                  onChange={(e) => setAvailability(e.target.value)}
-                />
-              </div>
-            </div>
+              <input
+                className="res-input res-input-availability"
+                type="text"
+                placeholder="Any stock"
+                value={availability}
+                onChange={(e) => setAvailability(e.target.value)}
+              />
 
-            <div className="results-filter-actions">
               <button
                 type="submit"
-                className="results-primary-button"
+                className="res-search-button"
                 disabled={loading}
               >
                 {loading ? "Searching..." : "Search"}
               </button>
-              <button
-                type="button"
-                className="results-secondary-button"
-                onClick={handleReset}
-              >
-                Reset filters
-              </button>
             </div>
           </form>
 
-          {error && <div className="results-error">{error}</div>}
+          {error && <div className="res-error">{error}</div>}
 
-          <div className="results-grid">
+          {results.length > 0 && (
+            <p className="res-count">
+              Found {results.length} product{results.length !== 1 ? "s" : ""}
+            </p>
+          )}
+
+          <div className="res-grid">
             {results.length === 0 && !loading && (
-              <div className="results-empty">
-                <p>No results yet. Enter a search query above to find products.</p>
+              <div className="res-empty">
+                No results yet. Enter a search query above to find products.
               </div>
             )}
 
             {results.map((product) => (
-              <article key={product.id} className="results-product-card">
-                <div className="results-product-image-wrapper">
+              <article key={product.id} className="res-product-card">
+                <div className="res-product-image-wrap">
                   {product.images && product.images.length > 0 ? (
                     <img
                       src={product.images[0]}
                       alt={product.title}
-                      className="results-product-image"
+                      className="res-product-image"
                     />
                   ) : (
-                    <div className="results-product-image-placeholder">
+                    <div className="res-product-image-placeholder">
                       No image
                     </div>
                   )}
                 </div>
 
-                <div className="results-product-body">
-                  <h3 className="results-product-title">{product.title}</h3>
+                <div className="res-product-body">
+                  <h3 className="res-product-title">{product.title}</h3>
 
                   {product.price != null && (
-                    <div className="results-product-price">
+                    <div className="res-product-price">
                       ₹{product.price}
                     </div>
                   )}
 
                   {product.match_reason && (
-                    <p className="results-product-match">
-                      <strong>Match:</strong>{" "}
+                    <p className="res-product-match">
+                      Match:{" "}
                       {product.match_reason.length > 120
                         ? `${product.match_reason.substring(0, 120)}...`
                         : product.match_reason}
                     </p>
                   )}
 
-                  {product.description && !product.match_reason && (
-                    <p className="results-product-description">
-                      {product.description.length > 140
-                        ? `${product.description.substring(0, 140)}...`
-                        : product.description}
-                    </p>
-                  )}
-
-                  <div className="results-product-actions">
+                  <div className="res-product-links">
                     <a
-                      className="results-link-button"
+                      className="res-product-link"
                       href={product.source_url}
                       target="_blank"
                       rel="noreferrer"
                     >
-                      View on site
+                      View Original →
                     </a>
 
                     {product.images && product.images.length > 0 && (
                       <button
                         type="button"
-                        className="results-secondary-button"
+                        className="res-product-download"
                         onClick={() =>
                           handleDownloadImage(product.images[0])
                         }

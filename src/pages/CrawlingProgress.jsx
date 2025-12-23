@@ -12,41 +12,17 @@ export default function CrawlingProgress() {
 
   const [status, setStatus] = useState({ status: "queued", counters: {} });
   const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState("Initializing crawl...");
+  const [currentStep, setCurrentStep] = useState("Crawl started...");
   const [isCancelling, setIsCancelling] = useState(false);
 
   const steps = [
-    { key: "queued", label: "Queued", description: "Job added to queue" },
-    {
-      key: "crawling",
-      label: "Crawling",
-      description: "Visiting pages and discovering products",
-    },
-    {
-      key: "parsing",
-      label: "Parsing",
-      description: "Extracting product information",
-    },
-    {
-      key: "downloading",
-      label: "Downloading",
-      description: "Downloading product images",
-    },
-    {
-      key: "enriching",
-      label: "Enriching",
-      description: "AI-powered product enrichment",
-    },
-    {
-      key: "indexing",
-      label: "Indexing",
-      description: "Preparing for semantic search",
-    },
-    {
-      key: "completed",
-      label: "Completed",
-      description: "Crawl finished successfully",
-    },
+    { key: "queued", label: "Queued" },
+    { key: "crawling", label: "Crawling" },
+    { key: "parsing", label: "Parsing" },
+    { key: "downloading", label: "Downloading" },
+    { key: "enriching", label: "Enriching" },
+    { key: "indexing", label: "Indexing" },
+    { key: "completed", label: "Completed" },
   ];
 
   useEffect(() => {
@@ -74,7 +50,7 @@ export default function CrawlingProgress() {
 
           const stepIndex = steps.findIndex((s) => s.key === data.status);
           if (stepIndex >= 0) {
-            setCurrentStep(steps[stepIndex].description);
+            setCurrentStep(steps[stepIndex].label);
             setProgress(((stepIndex + 1) / steps.length) * 100);
           }
         } catch (err) {
@@ -84,7 +60,6 @@ export default function CrawlingProgress() {
 
       ws.onerror = (err) => {
         console.error("WebSocket error", err);
-        setCurrentStep("Connection error. Retrying...");
       };
 
       ws.onclose = () => {
@@ -92,8 +67,6 @@ export default function CrawlingProgress() {
           reconnectAttempts += 1;
           const delay = Math.min(1000 * 2 ** reconnectAttempts, 30000);
           setTimeout(connect, delay);
-        } else {
-          setCurrentStep("Connection lost. Please refresh the page.");
         }
       };
     };
@@ -120,8 +93,6 @@ export default function CrawlingProgress() {
       });
       if (!resp.ok) {
         alert("Failed to cancel job");
-      } else {
-        setCurrentStep("Cancellation requested...");
       }
     } catch (err) {
       console.error("Cancel error", err);
@@ -132,116 +103,132 @@ export default function CrawlingProgress() {
   };
 
   const currentStepIndex = steps.findIndex((s) => s.key === status.status);
-
   const counters = status.counters || {};
   const pagesVisited = counters.pages_visited ?? 0;
   const productsFound = counters.products_discovered ?? 0;
-  const productsEnriched = counters.products_enriched ?? 0;
+  const productsExtracted =
+    counters.products_extracted ?? counters.products_enriched ?? 0;
 
   return (
-    <div className="crawling-page">
-      <header className="crawling-header">
+    <div className="cp-page">
+      <header className="cp-header">
         <Logo />
-        <button
-          type="button"
-          className="crawling-header-button"
-          onClick={() => navigate("/jobs")}
-        >
-          View Jobs
-        </button>
       </header>
 
-      <main className="crawling-main">
-        <section className="crawling-card">
-          <div className="crawling-card-header">
-            <h1>Crawling in Progress</h1>
-            {url && (
-              <p className="crawling-target">
-                <span>Target:</span> {url}
+      <main className="cp-main">
+        <section className="cp-card">
+          <div className="cp-card-top">
+            <div className="cp-title-block">
+              <h1 className="cp-title">Crawling in Progress</h1>
+              <p className="cp-subtitle">
+                {status.status === "completed"
+                  ? "Crawl finished successfully"
+                  : "Crawl in progress"}
               </p>
-            )}
+            </div>
+
+            <div className="cp-status-pill">
+              <div className="cp-status-label">JOB STATUS</div>
+              <div className="cp-status-value">{status.status}</div>
+              <div className="cp-status-percent">
+                {Math.round(progress)}%
+              </div>
+            </div>
           </div>
 
-          <div className="crawling-steps">
-            {steps.map((step, index) => (
-              <div
-                key={step.key}
-                className={[
-                  "crawling-step",
-                  index < currentStepIndex ? "crawling-step-completed" : "",
-                  index === currentStepIndex ? "crawling-step-current" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                <div className="crawling-step-index">{index + 1}</div>
-                <div className="crawling-step-body">
-                  <div className="crawling-step-title">{step.label}</div>
-                  <div className="crawling-step-description">
-                    {step.description}
+          <div className="cp-progress-bar">
+            <div
+              className="cp-progress-fill"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <div className="cp-steps">
+            {steps.map((step, index) => {
+              const isCompleted = index < currentStepIndex;
+              const isCurrent = index === currentStepIndex;
+
+              return (
+                <div
+                  key={step.key}
+                  className={[
+                    "cp-step",
+                    isCompleted ? "cp-step-completed" : "",
+                    isCurrent ? "cp-step-current" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  <div className="cp-step-icon">
+                    {isCompleted || isCurrent ? "✓" : index + 1}
+                  </div>
+                  <div className="cp-step-text">
+                    <div className="cp-step-label">{step.label}</div>
+                    {isCurrent && (
+                      <div className="cp-step-caption">
+                        {currentStep} in progress
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          <div className="crawling-progress">
-            <div className="crawling-progress-label">
-              {currentStep} ({Math.round(progress)}%)
+          <div className="cp-metrics-row">
+            <div className="cp-metric">
+              <div className="cp-metric-label">PAGES VISITED</div>
+              <div className="cp-metric-value">{pagesVisited}</div>
             </div>
-            <div className="crawling-progress-bar">
-              <div
-                className="crawling-progress-bar-fill"
-                style={{ width: `${progress}%` }}
-              />
+            <div className="cp-metric">
+              <div className="cp-metric-label">PRODUCTS FOUND</div>
+              <div className="cp-metric-value">{productsFound}</div>
             </div>
-          </div>
-
-          {/* metrics section – only numbers are dynamic */}
-          <div className="crawling-metrics">
-            <div className="crawling-metric">
-              <div className="crawling-metric-label">Pages visited</div>
-              <div className="crawling-metric-value">{pagesVisited}</div>
-            </div>
-            <div className="crawling-metric">
-              <div className="crawling-metric-label">Products found</div>
-              <div className="crawling-metric-value">{productsFound}</div>
-            </div>
-            <div className="crawling-metric">
-              <div className="crawling-metric-label">Products enriched</div>
-              <div className="crawling-metric-value">{productsEnriched}</div>
+            <div className="cp-metric">
+              <div className="cp-metric-label">PRODUCTS EXTRACTED</div>
+              <div className="cp-metric-value">{productsExtracted}</div>
             </div>
           </div>
 
-          <div className="crawling-actions">
-            <button
-              type="button"
-              className="crawling-secondary-button"
-              onClick={() => navigate("/jobs")}
-            >
-              View Jobs
-            </button>
-            <button
-              type="button"
-              className="crawling-danger-button"
-              onClick={handleCancel}
-              disabled={isCancelling || status.status === "completed"}
-            >
-              {isCancelling ? "Cancelling..." : "Cancel Job"}
-            </button>
-            {status.status === "completed" && (
+          <div className="cp-footer">
+            {url && (
+              <p className="cp-footer-url">
+                Crawling: <span>{url}</span>
+              </p>
+            )}
+
+            <div className="cp-footer-actions">
               <button
                 type="button"
-                className="crawling-primary-button"
-                onClick={() =>
-                  navigate("/results", {
-                    state: { jobId, url },
-                  })
-                }
+                className="cp-secondary-button"
+                onClick={() => navigate("/jobs")}
               >
-                View Results
+                View jobs
               </button>
-            )}
+
+              <button
+                type="button"
+                className="cp-danger-button"
+                onClick={handleCancel}
+                disabled={isCancelling || status.status === "completed"}
+              >
+                {isCancelling ? "Cancelling..." : "Cancel job"}
+              </button>
+
+              {status.status === "completed" && (
+                <button
+                  type="button"
+                  className="cp-primary-button"
+                  onClick={() =>
+                    navigate("/results", {
+                      state: { jobId, url },
+                    })
+                  }
+                >
+                  View search results →
+                </button>
+              )}
+            </div>
           </div>
         </section>
       </main>
