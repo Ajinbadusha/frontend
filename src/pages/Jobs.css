@@ -10,6 +10,37 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.jobs-delete-btn {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.jobs-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.jobs-delete-all-btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: #f97373;
+  color: white;
+}
+
+.jobs-delete-all-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+
 .jobs-header-content {
   max-width: 1200px;
   margin: 0 auto;

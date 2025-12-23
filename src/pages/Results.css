@@ -10,6 +10,18 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.product-download-button {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: #fee2e2;
+  color: #1cb936;
+}
+
+
+
 .results-header-content {
   max-width: 1200px;
   margin: 0 auto;

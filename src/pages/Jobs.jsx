@@ -9,6 +9,7 @@ export default function Jobs() {
   const navigate = useNavigate()
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState(null)
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -51,6 +52,26 @@ export default function Jobs() {
     }
   }
 
+  const handleDeleteJob = async (jobId) => {
+    if (!window.confirm('Delete this job and all its products?')) return
+    setDeletingId(jobId)
+    try {
+      const resp = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+        method: 'DELETE',
+      })
+      if (!resp.ok && resp.status !== 204) {
+        throw new Error('Failed to delete job')
+      }
+      setJobs((prev) => prev.filter((j) => j.id !== jobId))
+    } catch (err) {
+      console.error(err)
+      alert('Failed to delete job')
+    } finally {
+      setDeletingId(null)
+    }
+    
+  }
+
   return (
     <div className="jobs-page">
       <header className="jobs-header">
@@ -85,7 +106,8 @@ export default function Jobs() {
                 <div>Products</div>
                 <div>Created</div>
                 <div>Finished</div>
-                <div />
+                <div /> {/* Open Results */}
+                <div /> {/* Delete */}
               </div>
               {jobs.map((job) => (
                 <div key={job.id} className="jobs-row">
@@ -118,6 +140,15 @@ export default function Jobs() {
                       Open Results
                     </button>
                   </div>
+                  <div>
+                    <button
+                      className="jobs-delete-button"
+                      onClick={() => handleDeleteJob(job.id)}
+                      disabled={deletingId === job.id}
+                    >
+                      {deletingId === job.id ? 'Deleting…' : 'Delete'}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -127,5 +158,3 @@ export default function Jobs() {
     </div>
   )
 }
-
-
