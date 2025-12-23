@@ -54,6 +54,14 @@ export default function Home() {
 
         <nav className="sidebar-nav">
           <button className="nav-item nav-item-active">＋ New Crawl</button>
+          <button
+              type="button"
+              className="home-secondary-button" // reuse one of your existing button classes
+              onClick={() => navigate("/jobs")}
+            >
+              View previous jobs
+          </button>
+
         </nav>
 
         <div className="sidebar-footer">

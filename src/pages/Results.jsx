@@ -13,12 +13,15 @@ export default function Results() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // New: categories + selected category, but wired into your existing UI
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [availability, setAvailability] = useState("");
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!jobId) {
@@ -26,7 +29,7 @@ export default function Results() {
       return;
     }
 
-    // Fetch categories for this job
+    // Fetch distinct categories for this job
     const fetchCategories = async () => {
       try {
         const resp = await fetch(
@@ -77,49 +80,58 @@ export default function Results() {
     }
   };
 
-  const handleDownloadImage = (product) => {
-    if (!product.images || product.images.length === 0) return;
-    const url = product.images[0];
-    // simplest: open in new tab (browser download from there)
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = ""; // let browser pick filename
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleReset = () => {
+    setQuery("");
+    setSelectedCategory("");
+    setMinPrice("");
+    setMaxPrice("");
+    setAvailability("");
+    setResults([]);
+    setError("");
   };
+
+  const handleDownloadImage = (imageUrl) => {
+    if (!imageUrl) return;
+    const a = document.createElement("a");
+    a.href = imageUrl;
+    a.download = imageUrl.split("/").pop() || "product-image";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+  
 
   return (
     <div className="results-page">
       <header className="results-header">
         <Logo />
-        <div className="results-header-right">
-          <button
-            className="header-button"
-            onClick={() => navigate("/jobs")}
-            type="button"
-          >
-            View Jobs
-          </button>
-        </div>
+        <button
+          className="results-header-button"
+          type="button"
+          onClick={() => navigate("/jobs")}
+        >
+          View Jobs
+        </button>
       </header>
 
       <main className="results-main">
         <section className="results-card">
-          <h1>Product Search Results</h1>
-          {url && (
-            <p className="results-url">
-              <span>Source:</span> {url}
-            </p>
-          )}
+          <div className="results-card-header">
+            <h1>Product Search Results</h1>
+            {url && (
+              <p className="results-source">
+                <span>Source:</span> {url}
+              </p>
+            )}
+          </div>
 
-          {/* Search + filters */}
-          <form className="results-form" onSubmit={handleSearch}>
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label htmlFor="query">Search query</label>
+          {/* Filters – same layout, with category wired to backend */}
+          <form className="results-filters" onSubmit={handleSearch}>
+            <div className="results-filter-row">
+              <div className="results-filter-group results-filter-query">
+                <label htmlFor="results-query">Search query</label>
                 <input
-                  id="query"
+                  id="results-query"
                   type="text"
                   placeholder="e.g. red running shoes"
                   value={query}
@@ -128,11 +140,11 @@ export default function Results() {
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="category">Category</label>
+            <div className="results-filter-row">
+              <div className="results-filter-group">
+                <label htmlFor="results-category">Category</label>
                 <select
-                  id="category"
+                  id="results-category"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
@@ -145,10 +157,10 @@ export default function Results() {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="minPrice">Min price</label>
+              <div className="results-filter-group">
+                <label htmlFor="results-min-price">Min price</label>
                 <input
-                  id="minPrice"
+                  id="results-min-price"
                   type="number"
                   min="0"
                   value={minPrice}
@@ -156,10 +168,10 @@ export default function Results() {
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="maxPrice">Max price</label>
+              <div className="results-filter-group">
+                <label htmlFor="results-max-price">Max price</label>
                 <input
-                  id="maxPrice"
+                  id="results-max-price"
                   type="number"
                   min="0"
                   value={maxPrice}
@@ -167,10 +179,10 @@ export default function Results() {
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="availability">Availability</label>
+              <div className="results-filter-group">
+                <label htmlFor="results-availability">Availability</label>
                 <input
-                  id="availability"
+                  id="results-availability"
                   type="text"
                   placeholder="e.g. in stock"
                   value={availability}
@@ -179,64 +191,60 @@ export default function Results() {
               </div>
             </div>
 
-            <div className="form-actions">
+            <div className="results-filter-actions">
               <button
-                className="primary-button"
+                className="results-primary-button"
                 type="submit"
                 disabled={loading}
               >
                 {loading ? "Searching..." : "Search"}
               </button>
-
               <button
-                className="secondary-button"
+                className="results-secondary-button"
                 type="button"
-                onClick={() =>
-                  navigate("/results", {
-                    replace: true,
-                    state: { jobId, url },
-                  })
-                }
+                onClick={handleReset}
               >
-                Reset filters
+                Reset
               </button>
             </div>
           </form>
 
-          {error && <div className="error-banner">{error}</div>}
+          {error && <div className="results-error">{error}</div>}
 
-          {/* Results grid */}
           <div className="results-grid">
             {results.length === 0 && !loading && (
-              <div className="empty-state">
+              <div className="results-empty">
                 <p>No results yet. Enter a search query above to find products.</p>
               </div>
             )}
 
             {results.map((product) => (
-              <article key={product.id} className="product-card">
-                <div className="product-image-wrapper">
+              <article key={product.id} className="results-product-card">
+                <div className="results-product-image-wrapper">
                   {product.images && product.images.length > 0 ? (
                     <img
                       src={product.images[0]}
                       alt={product.title}
-                      className="product-image"
+                      className="results-product-image"
                     />
                   ) : (
-                    <div className="product-image-placeholder">No image</div>
+                    <div className="results-product-image-placeholder">
+                      No image
+                    </div>
                   )}
                 </div>
 
-                <div className="product-content">
-                  <h3 className="product-title">{product.title}</h3>
+                <div className="results-product-body">
+                  <h3 className="results-product-title">{product.title}</h3>
 
                   {product.price != null && (
-                    <div className="product-price">₹{product.price}</div>
+                    <div className="results-product-price">
+                      ₹{product.price}
+                    </div>
                   )}
 
-                  {/* Match reason / description */}
                   {product.match_reason && (
-                    <p className="product-match">
+                    <p className="results-product-match">
                       <strong>Match:</strong>{" "}
                       {product.match_reason.length > 120
                         ? `${product.match_reason.substring(0, 120)}...`
@@ -245,32 +253,33 @@ export default function Results() {
                   )}
 
                   {product.description && !product.match_reason && (
-                    <p className="product-description">
+                    <p className="results-product-description">
                       {product.description.length > 140
                         ? `${product.description.substring(0, 140)}...`
                         : product.description}
                     </p>
                   )}
 
-                  <div className="product-actions">
+                  <div className="results-product-actions">
                     <a
+                      className="results-link-button"
                       href={product.source_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="link-button"
                     >
                       View on site
                     </a>
 
-                    {product.images && product.images.length > 0 && (
+                    {product.images?.[0] && (
                       <button
                         type="button"
-                        className="secondary-button"
-                        onClick={() => handleDownloadImage(product)}
+                        className="results-secondary-button" // keep your class
+                        onClick={() => handleDownloadImage(product.images[0])}
                       >
                         Download image
                       </button>
                     )}
+
                   </div>
                 </div>
               </article>
