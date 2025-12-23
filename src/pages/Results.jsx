@@ -31,7 +31,6 @@ export default function Results() {
       return;
     }
 
-    // fetch distinct categories for this job
     const fetchCategories = async () => {
       try {
         const resp = await fetch(
@@ -68,7 +67,7 @@ export default function Results() {
       const resp = await fetch(`${API_BASE_URL}/search?${params.toString()}`);
       if (resp.ok) {
         const data = await resp.json();
-        setResults(data);
+        setResults(data || []);
       } else {
         alert("Search failed");
       }
@@ -106,16 +105,6 @@ export default function Results() {
     setProductDetail(null);
   };
 
-  const handleDownloadImage = (imageUrl) => {
-    if (!imageUrl) return;
-    const a = document.createElement("a");
-    a.href = imageUrl;
-    a.download = imageUrl.split("/").pop() || "product-image";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
   const handleDownloadInvoice = async (productId) => {
     try {
       const resp = await fetch(
@@ -131,7 +120,7 @@ export default function Results() {
       const data = await resp.json();
       const url = data.invoice_image_url;
       if (!url) return;
-  
+
       const a = document.createElement("a");
       a.href = url;
       a.download = url.split("/").pop() || "product-invoice.png";
@@ -143,7 +132,16 @@ export default function Results() {
       alert("Failed to download image");
     }
   };
-  
+
+  // helper to get first image URL from either string[] or {url}[]
+  const getFirstImageUrl = (images) => {
+    if (!images || images.length === 0) return "";
+    const first = images[0];
+    if (typeof first === "string") return first;
+    if (first && typeof first === "object") return first.url || "";
+    return "";
+  };
+
   return (
     <div className="results-page">
       <header className="results-header">
@@ -174,7 +172,6 @@ export default function Results() {
               className="results-search-input"
             />
             <div className="results-filters">
-              {/* Category now comes from backend list */}
               <select
                 className="filter-input"
                 value={categoryFilter}
@@ -267,71 +264,75 @@ export default function Results() {
                 <p>No results yet. Enter a search query above to find products.</p>
               </div>
             ) : (
-              results.map((product) => (
-                <div
-                  key={product.id}
-                  className="product-card"
-                  onClick={() => handleProductClick(product)}
-                >
-                  <div className="product-image-container">
-                    {product.images && product.images.length > 0 ? (
-                      <img
-                        src={product.images[0]}
-                        alt={product.title}
-                        className="product-image"
-                      />
-                    ) : (
-                      <div className="product-image-placeholder">No Image</div>
-                    )}
-                  </div>
-                  <div className="product-info">
-                    <h3 className="product-title">{product.title}</h3>
-                    {product.price != null && (
-                      <div className="product-price">${product.price}</div>
-                    )}
-                    {product.match_reason && (
-                      <p className="product-match-reason">
-                        Match:{" "}
-                        {product.match_reason.length > 120
-                          ? `${product.match_reason.substring(0, 120)}...`
-                          : product.match_reason}
-                      </p>
-                    )}
-                    {product.description && !product.match_reason && (
-                      <p className="product-description">
-                        {product.description.length > 140
-                          ? `${product.description.substring(0, 140)}...`
-                          : product.description}
-                      </p>
-                    )}
-                    <div className="product-footer">
-                      <a
-                        href={product.source_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="product-link"
-                      >
-                        View Original →
-                      </a>
-                    
-                      {product.id && (
-                        <button
-                          type="button"
-                          className="product-download-button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownloadInvoice(product.id);  // <— use invoice endpoint
-                          }}
-                        >
-                          Download image
-                        </button>
+              results.map((product) => {
+                const imageUrl = getFirstImageUrl(product.images);
+                return (
+                  <div
+                    key={product.id}
+                    className="product-card"
+                    onClick={() => handleProductClick(product)}
+                  >
+                    <div className="product-image-container">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={product.title}
+                          className="product-image"
+                        />
+                      ) : (
+                        <div className="product-image-placeholder">
+                          No Image
+                        </div>
                       )}
                     </div>
+                    <div className="product-info">
+                      <h3 className="product-title">{product.title}</h3>
+                      {product.price != null && (
+                        <div className="product-price">${product.price}</div>
+                      )}
+                      {product.match_reason && (
+                        <p className="product-match-reason">
+                          Match:{" "}
+                          {product.match_reason.length > 120
+                            ? `${product.match_reason.substring(0, 120)}...`
+                            : product.match_reason}
+                        </p>
+                      )}
+                      {product.description && !product.match_reason && (
+                        <p className="product-description">
+                          {product.description.length > 140
+                            ? `${product.description.substring(0, 140)}...`
+                            : product.description}
+                        </p>
+                      )}
+                      <div className="product-footer">
+                        <a
+                          href={product.source_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="product-link"
+                        >
+                          View Original →
+                        </a>
 
+                        {product.id && (
+                          <button
+                            type="button"
+                            className="product-download-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadInvoice(product.id);
+                            }}
+                          >
+                            Download image
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
