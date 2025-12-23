@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../components/Logo";
 import "./Results.css";
 
@@ -8,18 +8,22 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 export default function Results() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { jobId, url } = location.state || {};
+  const { jobId, url, status } = location.state || {};
 
-  const [query, setQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
+
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [availability, setAvailability] = useState("");
+
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productDetail, setProductDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
     if (!jobId) {
@@ -27,6 +31,7 @@ export default function Results() {
       return;
     }
 
+    // fetch distinct categories for this job
     const fetchCategories = async () => {
       try {
         const resp = await fetch(
@@ -45,45 +50,60 @@ export default function Results() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!jobId) return;
+    if (!searchQuery.trim() || !jobId) return;
 
     setLoading(true);
-    setError("");
-
-    const params = new URLSearchParams();
-    params.set("job_id", jobId);
-    params.set("q", query || "");
-    if (selectedCategory) params.set("category", selectedCategory);
-    if (minPrice) params.set("min_price", minPrice);
-    if (maxPrice) params.set("max_price", maxPrice);
-    if (availability) params.set("availability", availability);
-
     try {
+      const params = new URLSearchParams({
+        job_id: jobId,
+        q: searchQuery,
+        limit: "20",
+      });
+
+      if (categoryFilter) params.set("category", categoryFilter);
+      if (minPrice) params.set("min_price", String(minPrice));
+      if (maxPrice) params.set("max_price", String(maxPrice));
+      if (availability) params.set("availability", availability);
+
       const resp = await fetch(`${API_BASE_URL}/search?${params.toString()}`);
-      if (!resp.ok) {
-        setError("Search failed. Please try again.");
-        setResults([]);
-        return;
+      if (resp.ok) {
+        const data = await resp.json();
+        setResults(data);
+      } else {
+        alert("Search failed");
       }
-      const data = await resp.json();
-      setResults(data || []);
-    } catch (err) {
-      console.error("Search error", err);
-      setError("Search failed. Please try again.");
-      setResults([]);
+    } catch (error) {
+      console.error("Search error:", error);
+      alert("Search failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReset = () => {
-    setQuery("");
-    setSelectedCategory("");
-    setMinPrice("");
-    setMaxPrice("");
-    setAvailability("");
-    setResults([]);
-    setError("");
+  const handleProductClick = async (product) => {
+    setSelectedProduct(product);
+    setLoadingDetail(true);
+    try {
+      const resp = await fetch(
+        `${API_BASE_URL}/products/${encodeURIComponent(product.id)}`
+      );
+      if (resp.ok) {
+        const data = await resp.json();
+        setProductDetail(data);
+      } else {
+        setProductDetail(null);
+      }
+    } catch (error) {
+      console.error("Detail fetch error:", error);
+      setProductDetail(null);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const closeDetail = () => {
+    setSelectedProduct(null);
+    setProductDetail(null);
   };
 
   const handleDownloadImage = (imageUrl) => {
@@ -97,44 +117,40 @@ export default function Results() {
   };
 
   return (
-    <div className="res-page">
-      <header className="res-header">
-        <Logo />
-        <button
-          type="button"
-          className="res-back-button"
-          onClick={() => navigate("/")}
-        >
-          ← Back to Home
-        </button>
+    <div className="results-page">
+      <header className="results-header">
+        <div className="results-header-content">
+          <div className="results-logo">
+            <Logo variant="icon-only" size="medium" />
+            <h1>INNOCRAWL</h1>
+          </div>
+          <button className="back-button" onClick={() => navigate("/")}>
+            ← Back to Home
+          </button>
+        </div>
       </header>
 
-      <main className="res-main">
-        <section className="res-card">
-          <div className="res-card-header">
-            <h1 className="res-title">Product Search Results</h1>
-            {url && (
-              <p className="res-source">
-                Source: <span>{url}</span>
-              </p>
-            )}
+      <main className="results-main">
+        <div className="results-container">
+          <div className="results-header-section">
+            <h2>Product Search Results</h2>
+            {url && <p className="results-source">Source: {url}</p>}
           </div>
 
-          {/* filter row like screenshot */}
-          <form className="res-filters" onSubmit={handleSearch}>
-            <div className="res-filters-row">
-              <input
-                className="res-input res-input-query"
-                type="text"
-                placeholder="Search query"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-
+          <form className="results-search-form" onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Search products: e.g., 'red winter dress', 'leather shoes', 'vitamin c serum'"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="results-search-input"
+            />
+            <div className="results-filters">
+              {/* Category now comes from backend list */}
               <select
-                className="res-input res-input-category"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="filter-input"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
               >
                 <option value="">Category</option>
                 {categories.map((cat) => (
@@ -145,116 +161,225 @@ export default function Results() {
               </select>
 
               <input
-                className="res-input res-input-price"
                 type="number"
                 placeholder="Min price"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
+                className="filter-input price-input"
+                min="0"
               />
-
               <input
-                className="res-input res-input-price"
                 type="number"
                 placeholder="Max price"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
+                className="filter-input price-input"
+                min="0"
               />
-
-              <input
-                className="res-input res-input-availability"
-                type="text"
-                placeholder="Any stock"
+              <select
+                className="filter-input"
                 value={availability}
                 onChange={(e) => setAvailability(e.target.value)}
-              />
-
-              <button
-                type="submit"
-                className="res-search-button"
-                disabled={loading}
               >
-                {loading ? "Searching..." : "Search"}
-              </button>
+                <option value="">Any stock</option>
+                <option value="in stock">In stock</option>
+                <option value="out of stock">Out of stock</option>
+              </select>
             </div>
+            <button
+              type="submit"
+              className="results-search-button"
+              disabled={loading || !searchQuery.trim()}
+            >
+              {loading ? "Searching..." : "Search"}
+            </button>
           </form>
 
-          {error && <div className="res-error">{error}</div>}
-
-          {results.length > 0 && (
-            <p className="res-count">
-              Found {results.length} product{results.length !== 1 ? "s" : ""}
-            </p>
+          {(categoryFilter || minPrice || maxPrice || availability) && (
+            <div className="results-active-filters">
+              <span>Filters:</span>
+              {categoryFilter && (
+                <span className="filter-chip">Category: {categoryFilter}</span>
+              )}
+              {minPrice && (
+                <span className="filter-chip">Min: ${minPrice}</span>
+              )}
+              {maxPrice && (
+                <span className="filter-chip">Max: ${maxPrice}</span>
+              )}
+              {availability && (
+                <span className="filter-chip">
+                  Availability: {availability}
+                </span>
+              )}
+              <button
+                type="button"
+                className="clear-filters"
+                onClick={() => {
+                  setCategoryFilter("");
+                  setMinPrice("");
+                  setMaxPrice("");
+                  setAvailability("");
+                }}
+              >
+                Clear
+              </button>
+            </div>
           )}
 
-          <div className="res-grid">
-            {results.length === 0 && !loading && (
-              <div className="res-empty">
-                No results yet. Enter a search query above to find products.
+          {results.length > 0 && (
+            <div className="results-count">
+              Found {results.length} product{results.length !== 1 ? "s" : ""}
+            </div>
+          )}
+
+          <div className="results-grid">
+            {results.length === 0 ? (
+              <div className="results-empty">
+                <p>No results yet. Enter a search query above to find products.</p>
               </div>
-            )}
-
-            {results.map((product) => (
-              <article key={product.id} className="res-product-card">
-                <div className="res-product-image-wrap">
-                  {product.images && product.images.length > 0 ? (
-                    <img
-                      src={product.images[0]}
-                      alt={product.title}
-                      className="res-product-image"
-                    />
-                  ) : (
-                    <div className="res-product-image-placeholder">
-                      No image
-                    </div>
-                  )}
-                </div>
-
-                <div className="res-product-body">
-                  <h3 className="res-product-title">{product.title}</h3>
-
-                  {product.price != null && (
-                    <div className="res-product-price">
-                      ₹{product.price}
-                    </div>
-                  )}
-
-                  {product.match_reason && (
-                    <p className="res-product-match">
-                      Match:{" "}
-                      {product.match_reason.length > 120
-                        ? `${product.match_reason.substring(0, 120)}...`
-                        : product.match_reason}
-                    </p>
-                  )}
-
-                  <div className="res-product-links">
-                    <a
-                      className="res-product-link"
-                      href={product.source_url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View Original →
-                    </a>
-
-                    {product.images && product.images.length > 0 && (
-                      <button
-                        type="button"
-                        className="res-product-download"
-                        onClick={() =>
-                          handleDownloadImage(product.images[0])
-                        }
-                      >
-                        Download image
-                      </button>
+            ) : (
+              results.map((product) => (
+                <div
+                  key={product.id}
+                  className="product-card"
+                  onClick={() => handleProductClick(product)}
+                >
+                  <div className="product-image-container">
+                    {product.images && product.images.length > 0 ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.title}
+                        className="product-image"
+                      />
+                    ) : (
+                      <div className="product-image-placeholder">No Image</div>
                     )}
                   </div>
+                  <div className="product-info">
+                    <h3 className="product-title">{product.title}</h3>
+                    {product.price != null && (
+                      <div className="product-price">${product.price}</div>
+                    )}
+                    {product.match_reason && (
+                      <p className="product-match-reason">
+                        Match:{" "}
+                        {product.match_reason.length > 120
+                          ? `${product.match_reason.substring(0, 120)}...`
+                          : product.match_reason}
+                      </p>
+                    )}
+                    {product.description && !product.match_reason && (
+                      <p className="product-description">
+                        {product.description.length > 140
+                          ? `${product.description.substring(0, 140)}...`
+                          : product.description}
+                      </p>
+                    )}
+                    <div className="product-footer">
+                      <a
+                        href={product.source_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="product-link"
+                      >
+                        View Original →
+                      </a>
+
+                      {product.images?.[0] && (
+                        <button
+                          type="button"
+                          className="product-download-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadImage(product.images[0]);
+                          }}
+                        >
+                          Download image
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </article>
-            ))}
+              ))
+            )}
           </div>
-        </section>
+        </div>
       </main>
+
+      {selectedProduct && (
+        <div className="product-detail-overlay" onClick={closeDetail}>
+          <div
+            className="product-detail-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="detail-close-button" onClick={closeDetail}>
+              ×
+            </button>
+            {loadingDetail ? (
+              <div className="detail-loading">Loading product details...</div>
+            ) : productDetail ? (
+              <div className="product-detail-content">
+                <h2 className="detail-title">{productDetail.title}</h2>
+                {productDetail.price != null && (
+                  <div className="detail-price">${productDetail.price}</div>
+                )}
+
+                {productDetail.images && productDetail.images.length > 0 && (
+                  <div className="detail-images">
+                    {productDetail.images.map((img, idx) => (
+                      <div key={idx} className="detail-image-item">
+                        <img src={img.url || img} alt={productDetail.title} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="detail-section">
+                  <h3>Description</h3>
+                  <p>
+                    {productDetail.enrichment?.visual_summary ||
+                      productDetail.description ||
+                      "No description available."}
+                  </p>
+                </div>
+
+                {productDetail.enrichment?.attributes && (
+                  <div className="detail-section">
+                    <h3>Attributes</h3>
+                    <div className="detail-attributes">
+                      {Object.entries(
+                        productDetail.enrichment.attributes
+                      ).map(([key, value]) => (
+                        <div key={key} className="attribute-item">
+                          <span className="attribute-key">{key}:</span>
+                          <span className="attribute-value">
+                            {String(value)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="detail-section">
+                  <a
+                    href={productDetail.source_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="detail-source-link"
+                  >
+                    View Original Product Page →
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="detail-error">Failed to load product details.</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
