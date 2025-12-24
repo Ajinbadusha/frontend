@@ -19,10 +19,8 @@ export default function URLPanel({ onStartCrawl }) {
       return
     }
     setLoading(true)
-    const success = await onStartCrawl(url, options)
-    if (!success) {
-      setLoading(false)
-    }
+    await onStartCrawl(url, options)
+    setLoading(false)
   }
 
   return (

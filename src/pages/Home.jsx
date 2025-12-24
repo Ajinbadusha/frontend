@@ -1,7 +1,3 @@
-Home.jsx
-Diff
-Original
-Modified
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import URLPanel from '../components/URLPanel'
@@ -17,8 +13,7 @@ export default function Home() {
 
   /* ---------------- Start crawl ---------------- */
   const startCrawl = async (url, options) => {
-    try {
-      const resp = await fetch(`/jobs`, {
+    const resp = await fetch(`/jobs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url, options }),
@@ -33,12 +28,6 @@ export default function Home() {
 
     // Navigate to crawling progress page
     navigate('/crawling', { state: { jobId: data.job_id, url } })
-    } catch (error) {
-      console.error('Crawl start failed:', error)
-      alert('Failed to start crawl. Check console for details.')
-      return false // Indicate failure to URLPanel
-    }
-    return true // Indicate success to URLPanel
   }
 
   // Simulate initial loading
@@ -110,3 +99,4 @@ export default function Home() {
     </div>
   )
 }
+
