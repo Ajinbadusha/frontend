@@ -13,7 +13,7 @@ export default function Home() {
 
   /* ---------------- Start crawl ---------------- */
   const startCrawl = async (url, options) => {
-    const resp = await fetch(`${API_BASE_URL}/jobs`, {
+    const resp = await fetch(`/jobs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url, options }),
