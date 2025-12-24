@@ -56,7 +56,7 @@ export default function Home() {
           <button className="nav-item nav-item-active">＋ New Crawl</button>
           <button
               type="button"
-              className="home-secondary-button" // reuse one of your existing button classes
+              className="btn btn-secondary full-width" // reuse one of your existing button classes
               onClick={() => navigate("/jobs")}
             >
               View previous jobs
@@ -99,4 +99,3 @@ export default function Home() {
     </div>
   )
 }
-
