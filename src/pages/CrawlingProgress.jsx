@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import Logo from '../components/Logo'
 import './CrawlingProgress.css'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function CrawlingProgress() {
   const navigate = useNavigate()
@@ -36,11 +36,21 @@ export default function CrawlingProgress() {
     const maxReconnectAttempts = 10
 
     const connect = () => {
-      const wsBase = API_BASE_URL.replace(/^http/, 'ws')
-      ws = new WebSocket(`${wsBase}/ws?job_id=${encodeURIComponent(jobId)}`)
+      // Handle absolute vs relative URLs and production WSS
+      let wsUrl;
+      if (API_BASE_URL.startsWith('http')) {
+        wsUrl = API_BASE_URL.replace(/^http/, 'ws');
+      } else {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        wsUrl = `${protocol}//${host}${API_BASE_URL}`;
+      }
+      
+      ws = new WebSocket(`${wsUrl}/ws?job_id=${encodeURIComponent(jobId)}`)
 
       ws.onopen = () => {
         reconnectAttempts = 0
+        console.log('WebSocket connected');
       }
 
       ws.onmessage = (event) => {
@@ -52,7 +62,6 @@ export default function CrawlingProgress() {
           if (stepIndex >= 0) {
             setCurrentStep(steps[stepIndex].description)
 
-            // if job is done or failed, always show 100%
             if (data.status === 'completed' || data.status === 'failed') {
               setProgress(100)
             } else {
@@ -60,7 +69,6 @@ export default function CrawlingProgress() {
             }
           }
 
-          // show backend error text when failed
           if (data.status === 'failed' && data.error) {
             setCurrentStep(`Crawl failed: ${data.error}`)
           }
@@ -74,7 +82,8 @@ export default function CrawlingProgress() {
         setCurrentStep('Connection error. Retrying...')
       }
 
-      ws.onclose = () => {
+      ws.onclose = (e) => {
+        console.log('WebSocket closed', e.code, e.reason);
         if (reconnectAttempts < maxReconnectAttempts) {
           reconnectAttempts++
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000)
@@ -93,15 +102,11 @@ export default function CrawlingProgress() {
         ws.close()
       }
     }
-  }, [jobId, navigate]) // remove `steps` from deps to avoid re‑connecting
+  }, [jobId, navigate])
 
   const handleCancel = async () => {
     if (!jobId) return
-
-    // eslint-disable-next-line no-restricted-globals
-    if (!confirm('Are you sure you want to cancel this crawl?')) {
-      return
-    }
+    if (!confirm('Are you sure you want to cancel this crawl?')) return
 
     setIsCancelling(true)
     try {
@@ -122,7 +127,6 @@ export default function CrawlingProgress() {
   }
 
   const currentStepIndex = steps.findIndex(s => s.key === status.status)
-
   const counters = status.counters || {}
   const pagesVisited = counters.pages_visited ?? 0
   const productsFound = counters.products_discovered ?? 0
@@ -228,3 +232,4 @@ export default function CrawlingProgress() {
     </div>
   )
 }
+Manus

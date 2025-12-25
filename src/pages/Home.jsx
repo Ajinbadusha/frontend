@@ -5,7 +5,8 @@ import Logo from '../components/Logo'
 import LoadingScreen from '../components/LoadingScreen'
 import '../App.css'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
+// Use environment variable or fallback to current origin for relative paths
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function Home() {
   const navigate = useNavigate()
@@ -13,21 +14,26 @@ export default function Home() {
 
   /* ---------------- Start crawl ---------------- */
   const startCrawl = async (url, options) => {
-    const resp = await fetch(`/jobs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, options }),
-    })
+    try {
+      const resp = await fetch(`${API_BASE_URL}/jobs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, options }),
+      })
 
-    if (!resp.ok) {
-      alert('Failed to start crawl')
-      return
+      if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({}));
+        alert(`Failed to start crawl: ${errorData.detail || resp.statusText}`);
+        return
+      }
+
+      const data = await resp.json()
+      // Navigate to crawling progress page
+      navigate('/crawling', { state: { jobId: data.job_id, url } })
+    } catch (err) {
+      console.error('Fetch error:', err);
+      alert('Network error: Could not connect to the backend server.');
     }
-
-    const data = await resp.json()
-
-    // Navigate to crawling progress page
-    navigate('/crawling', { state: { jobId: data.job_id, url } })
   }
 
   // Simulate initial loading
@@ -56,12 +62,11 @@ export default function Home() {
           <button className="nav-item nav-item-active">＋ New Crawl</button>
           <button
               type="button"
-              className="nav-item nav-item-active full-width" // reuse one of your existing button classes
+              className="nav-item nav-item-active full-width"
               onClick={() => navigate("/jobs")}
             >
               View previous jobs
           </button>
-
         </nav>
 
         <div className="sidebar-footer">
@@ -99,4 +104,3 @@ export default function Home() {
     </div>
   )
 }
-
