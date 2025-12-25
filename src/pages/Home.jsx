@@ -13,7 +13,7 @@ export default function Home() {
 
   /* ---------------- Start crawl ---------------- */
   const startCrawl = async (url, options) => {
-    const resp = await fetch(`/jobs`, {
+    const resp = await fetch(`${API_BASE_URL}/jobs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url, options }),
@@ -55,11 +55,11 @@ export default function Home() {
         <nav className="sidebar-nav">
           <button className="nav-item nav-item-active">＋ New Crawl</button>
           <button
-              type="button"
-              className="nav-item nav-item-active full-width" // reuse one of your existing button classes
-              onClick={() => navigate("/jobs")}
-            >
-              View previous jobs
+            type="button"
+            className="nav-item nav-item-active full-width" // reuse one of your existing button classes
+            onClick={() => navigate("/jobs")}
+          >
+            View previous jobs
           </button>
 
         </nav>
